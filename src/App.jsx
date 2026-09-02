@@ -1,122 +1,137 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from 'react';
+import Layout from './Layout';
+import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router';
+import { Home, Contact, Cart, Login, Signup, User, Products, Product, Error, Blocked, Orders, Order, Announcements } from './pages'; // ⚠️ add Orders, Order, Announcements to your pages barrel export
+import { AllCategoriesPage, CategoryGroupsPage, AllGroupsPage, GroupProductsPage } from './pages'; // ⚠️ add these 4 to your pages barrel export
+import { CheckUser, CheckAdmin, RedirectIfAuthenticated } from './protectedRoutes';
+import {
+  AdminAnnouncements,
+  AdminAnnouncementDetail,
+  AdminContact,
+  AdminDashboard,
+  AdminLayout,
+  AdminProducts,
+  AdminUsers,
+  AdminUserProfile,
+  AdminOrders,
+  AdminOrderDetail,
+} from "./admin"; // ⚠️ add AdminAnnouncementDetail to your admin barrel export
+import { OrderForm } from './components'; // ⚠️ adjust path if components/ isn't directly under src/
+
+// Built ONCE at module scope, not inside App(). Creating this inside the
+// component body meant a fresh router (and everything under it — Layout,
+// the Redux Provider, every page's local state) got rebuilt on every
+// App re-render, which is a likely cause of pages randomly resetting to
+// "Loading..." mid-fetch.
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path='/' element={<Layout />} errorElement={<Error />}>
+      <Route path='' element={<Home />} />
+      <Route path='contact' element={<Contact />} />
+      <Route path='blocked' element={<Blocked />} />
+      <Route
+        path='welcome-back'
+        element={(
+          <RedirectIfAuthenticated>
+            <Login />
+          </RedirectIfAuthenticated>
+        )}
+      />
+      <Route
+        path='create-account'
+        element={(
+          <RedirectIfAuthenticated>
+            <Signup />
+          </RedirectIfAuthenticated>
+        )}
+      />
+      <Route
+        path='user/:username'
+        element={(
+          <CheckUser>
+            <User />
+          </CheckUser>
+        )}
+      />
+
+      {/* checkout is intentionally NOT wrapped in CheckUser — guests
+          and brand-new users need to reach it too. OrderForm itself
+          handles logging them in or creating an account inline. */}
+      <Route path='checkout' element={<OrderForm />} />
+
+      {/* Cart, username-scoped. */}
+      <Route
+        path=':username/cart'
+        element={(
+          <CheckUser>
+            <Cart />
+          </CheckUser>
+        )}
+      />
+
+      {/* Order history + cancel (only while a given order is Pending). */}
+      <Route
+        path=':username/orders'
+        element={(
+          <CheckUser>
+            <Orders />
+          </CheckUser>
+        )}
+      />
+
+      {/* Single order detail — cancel button only shows while Pending. */}
+      <Route
+        path=':username/orders/:orderId'
+        element={(
+          <CheckUser>
+            <Order />
+          </CheckUser>
+        )}
+      />
+
+      {/* Announcements — list and detail share one component, switching
+          on whether :announcementId is present. Not wrapped in CheckUser:
+          the popup/bell can deep-link here for guests too, per
+          AnnouncementPopup.jsx's "eligible" gate handling read-tracking
+          separately. */}
+      <Route path='announcements' element={<Announcements />} />
+      <Route path='announcements/:announcementId' element={<Announcements />} />
+
+      <Route
+        path='admin'
+        element={(
+          <CheckAdmin>
+            <AdminLayout />
+          </CheckAdmin>
+        )}
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path='products' element={<AdminProducts />} />
+        <Route path='users' element={<AdminUsers />} />
+        <Route path='users/:username' element={<AdminUserProfile />} />
+        <Route path='orders' element={<AdminOrders />} />
+        <Route path='orders/:orderId' element={<AdminOrderDetail />} />
+        <Route path='announcements' element={<AdminAnnouncements />} />
+        <Route path='announcements/new' element={<AdminAnnouncementDetail />} />
+        <Route path='announcements/:announcementId' element={<AdminAnnouncementDetail />} />
+        <Route path='contact' element={<AdminContact />} />
+      </Route>
+
+      {/* Products browsing — every click here opens a new route/page. */}
+      <Route path='products' element={<Products />} />
+      <Route path='products/categories' element={<AllCategoriesPage />} />
+      <Route path='products/groups' element={<AllGroupsPage />} />
+      <Route path='products/category/:categoryName' element={<CategoryGroupsPage />} />
+      <Route path='products/category/:categoryName/groups' element={<AllGroupsPage />} />
+      <Route path='products/category/:categoryName/group/:groupName' element={<GroupProductsPage />} />
+
+      <Route path='products/:category/:group/:slug' element={<Product />} />
+    </Route>
+  )
+);
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;
