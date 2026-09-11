@@ -24,7 +24,7 @@ export { default as GroupTile } from './products/GroupTile';
 export { default as CategoryTile } from './products/CategoryTile';
 export { default as ViewAllTile } from './products/ViewAllTile';
 export { default as ProductFilters } from './products/ProductFilters';
-export { default as FilterSidebar } from './products/FilterSideBar';
+export { default as FilterSidebar } from './products/FilterSidebar';
 export { default as CategoriesSection } from './products/CategoriesSection';
 export { default as GroupsSection } from './products/GroupsSection';
 export { default as CategoryPreview } from './products/CategoryPreview';

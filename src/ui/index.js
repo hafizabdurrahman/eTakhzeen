@@ -1,5 +1,5 @@
 export { default as Toggle } from './Toggle';
-export { default as Checkbox } from './Checkbox';
+export { default as Checkbox } from './CheckBox';
 export { default as SegmentedControl } from './SegmentedControl';
 export { default as HeatmapCalendar } from './HeatmapCalendar';
 export { default as DonutChart } from './DonutChart';
