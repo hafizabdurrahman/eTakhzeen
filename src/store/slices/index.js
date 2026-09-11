@@ -4,3 +4,8 @@ export { default as cartReducer } from './cartSlice';
 export { default as contactReducer } from './contactSlice';
 export { default as ordersReducer } from './orderSlice';
 export { default as announcementsReducer } from './announcementSlice';
+export { default as conversationsReducer } from './conversationsSlice';
+export { default as messagesReducer } from './messagesSlice';
+export { default as faqReducer } from './faqSlice';
+export { default as reviewsReducer } from './reviewSlice';
+export { default as returnReducer } from './returnSlice';

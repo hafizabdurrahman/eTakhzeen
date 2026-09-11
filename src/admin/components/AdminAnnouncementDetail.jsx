@@ -98,39 +98,39 @@ function AdminAnnouncementDetail() {
     }
 
     if (!isNew && (status === 'loading' || status === 'idle')) {
-        return <p className="text-neutral-400">Loading announcement...</p>;
+        return <p className="text-sm text-stone-500 dark:text-stone-400">Loading announcement...</p>;
     }
 
     return (
         <div className="max-w-2xl">
-            <button onClick={() => navigate('/admin/announcements')} className="text-sm text-neutral-400 hover:underline mb-4">
+            <button onClick={() => navigate('/admin/announcements')} className="mb-4 text-sm text-stone-500 hover:text-brand-600 hover:underline dark:text-stone-400 dark:hover:text-brand-500">
                 ← Back to Announcements
             </button>
 
-            <h1 className="text-xl font-semibold mb-4">{isNew ? 'New Announcement' : 'Edit Announcement'}</h1>
+            <h1 className="mb-4 text-3xl font-bold text-stone-900 dark:text-stone-100">{isNew ? 'New Announcement' : 'Edit Announcement'}</h1>
 
-            {saveStatus === 'failed' && <p className="text-red-400 text-sm mb-2">{saveError}</p>}
+            {saveStatus === 'failed' && <p className="mb-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>}
 
-            <div className="space-y-4 border border-neutral-800 rounded-lg p-4 mb-4">
+            <div className="mb-4 space-y-4 rounded-lg border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
                 <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Title</label>
+                    <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Title</label>
                     <input
                         value={form.title}
                         onChange={(e) => handleField('title', e.target.value)}
-                        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                        className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Content</label>
+                    <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Content</label>
                     <RichTextEditor value={form.contentHtml} onChange={(html) => handleField('contentHtml', html)} />
                 </div>
 
                 <div>
-                    <label className="block text-sm text-neutral-400 mb-1">
-                        Cover Image {coverUploading && <span className="text-neutral-500">(uploading...)</span>}
+                    <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">
+                        Cover Image {coverUploading && <span className="text-stone-500 dark:text-stone-400">(uploading...)</span>}
                     </label>
-                    <input type="file" accept="image/*" onChange={handleCoverUpload} className="text-sm text-neutral-400" />
+                    <input type="file" accept="image/*" onChange={handleCoverUpload} className="text-sm text-stone-500 file:mr-3 file:rounded-md file:border-0 file:bg-stone-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-stone-900 dark:text-stone-400 dark:file:bg-stone-800 dark:file:text-stone-100" />
                     {form.coverFileId && (
                         <img
                             src={announcementService.getImageUrl({ fileId: form.coverFileId })}
@@ -142,26 +142,26 @@ function AdminAnnouncementDetail() {
 
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="block text-sm text-neutral-400 mb-1">Button Label (optional)</label>
+                        <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Button Label (optional)</label>
                         <input
                             value={form.buttonLabel}
                             onChange={(e) => handleField('buttonLabel', e.target.value)}
                             placeholder="Shop Now"
-                            className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                            className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm text-neutral-400 mb-1">Button Link (optional)</label>
+                        <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Button Link (optional)</label>
                         <input
                             value={form.buttonHref}
                             onChange={(e) => handleField('buttonHref', e.target.value)}
                             placeholder="/products or https://..."
-                            className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                            className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                         />
                     </div>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-neutral-400">
+                <label className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-400">
                     <input
                         type="checkbox"
                         checked={form.active}
@@ -175,12 +175,15 @@ function AdminAnnouncementDetail() {
                 <button
                     onClick={handleSave}
                     disabled={saveStatus === 'loading' || coverUploading}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                 >
                     {saveStatus === 'loading' ? 'Saving...' : isNew ? 'Create' : 'Save Changes'}
                 </button>
                 {!isNew && (
-                    <button onClick={handleDelete} className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium">
+                    <button
+                        onClick={handleDelete}
+                        className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                    >
                         Delete
                     </button>
                 )}
@@ -188,16 +191,16 @@ function AdminAnnouncementDetail() {
 
             {!isNew && (
                 <div>
-                    <h2 className="text-sm text-neutral-400 mb-2">
+                    <h2 className="mb-2 text-sm text-stone-500 dark:text-stone-400">
                         Responses ({responses.length}) — {announcement?.likesCount ?? 0} likes, {announcement?.dislikesCount ?? 0} dislikes
                     </h2>
-                    {responsesStatus === 'loading' && <p className="text-neutral-500 text-sm">Loading responses...</p>}
+                    {responsesStatus === 'loading' && <p className="text-sm text-stone-500 dark:text-stone-400">Loading responses...</p>}
                     {responsesStatus === 'succeeded' && responses.length === 0 && (
-                        <p className="text-neutral-500 text-sm">No one has seen this announcement yet.</p>
+                        <p className="text-sm text-stone-500 dark:text-stone-400">No one has seen this announcement yet.</p>
                     )}
                     {responsesStatus === 'succeeded' && responses.length > 0 && (
                         <table className="w-full text-sm text-left">
-                            <thead className="text-neutral-400 border-b border-neutral-800">
+                            <thead className="border-b border-stone-200 text-stone-500 dark:border-stone-800 dark:text-stone-400">
                                 <tr>
                                     <th className="py-2 pr-4">Username</th>
                                     <th className="py-2 pr-4">Read</th>
@@ -206,7 +209,7 @@ function AdminAnnouncementDetail() {
                             </thead>
                             <tbody>
                                 {responses.map((r) => (
-                                    <tr key={r['$id']} className="border-b border-neutral-900">
+                                    <tr key={r['$id']} className="border-b border-stone-100 dark:border-stone-800/60">
                                         <td className="py-2 pr-4">{r.username}</td>
                                         <td className="py-2 pr-4">{r.read ? 'Yes' : 'No'}</td>
                                         <td className="py-2 pr-4 capitalize">{r.reaction}</td>

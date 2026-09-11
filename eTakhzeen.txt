@@ -1,0 +1,650 @@
+ETAKHZEEN — VISUAL RESTYLE BRIEF FOR CODING AGENT
+====================================================
+Stack: Vite + React + TailwindCSS (already installed and configured).
+
+READ THIS ENTIRE FILE BEFORE TOUCHING ANY CODE.
+
+
+0. YOUR ROLE
+------------
+You are acting as a senior front-end/product designer-developer doing a full
+visual restyle pass on an existing, working ecommerce codebase. You are NOT
+rebuilding the app. You are NOT changing what it does — only how it looks
+and feels. Think of yourself as the designer brought in after the product
+already works, to make it look like it belongs to a real, established
+company that sells products online.
+
+Work like a real developer would: read before you write, keep diffs
+minimal and scoped, and never touch a file you weren't asked to touch.
+
+
+0.1 A PREVIOUS ATTEMPT AT THIS TASK FAILED — DO NOT REPEAT THESE MISTAKES
+---------------------------------------------------------------------------
+A prior restyle pass on this exact codebase went wrong in specific,
+avoidable ways. Read this list and actively avoid every item on it:
+
+1. NO SINGLE COLOR SYSTEM WAS USED. The header ended up white while a user
+   panel component ended up blue, with no shared logic between them. This
+   is not acceptable. There is exactly ONE color token system for this
+   entire app (defined in Section 3.9 below). Every component pulls its
+   background/text/border colors from that same system. If you catch
+   yourself picking a color for a component without checking whether it
+   matches the token system already used elsewhere, STOP and fix it before
+   continuing.
+2. DARK MODE (the `dark:` Tailwind variant) WAS NOT USED AT ALL. Every
+   single className you write that sets a color (bg-*, text-*, border-*,
+   ring-*, shadow color, etc.) MUST have a matching `dark:` variant, with
+   no exceptions. A component that looks correct in light mode but breaks
+   or looks unstyled in dark mode is an incomplete, failed edit — not a
+   "good enough for now" edit.
+3. ICONS AND DECORATIVE ELEMENTS WERE ADDED WHERE THEY DID NOT BELONG.
+   Do not add an icon, illustration, badge, or decorative element unless
+   it is listed as expected in this brief (Sections 3.8–3.12) or already
+   existed in the component before your edit. When in doubt, leave it out
+   — a clean, restrained layout beats a busy one. Do not sprinkle icons
+   next to every label "for style."
+4. SIDEBARS/PANELS WERE STYLED INCONSISTENTLY BETWEEN THE USER PANEL AND
+   THE ADMIN PANEL, and did not follow a real sidebar layout pattern. Both
+   `UserPanelSidebar.jsx` and the admin panel's sidebar (inside
+   `AdminLayout.jsx`) MUST use the exact same structural pattern described
+   in Section 3.10 — same width behavior, same active/hover states, same
+   color tokens (just applied to their own panel's content). They should
+   look like siblings, not strangers.
+5. PRODUCT CARDS/LISTS DID NOT FOLLOW A CONSISTENT INTERNAL ORDER. Every
+   place a product is rendered as a card or list item (ProductCard.jsx,
+   GroupCard.jsx, GroupPreview.jsx, GroupTile.jsx, CategoryCard.jsx,
+   CategoryPreview.jsx, CategoryTile.jsx, and any product row/tile inside
+   AllProducts.jsx, Products.jsx, Product.jsx, GroupProductsPage.jsx,
+   CategoryGroupsPage.jsx) MUST follow the exact visual order defined in
+   Section 3.11: image first, then title, then the rest. No exceptions,
+   no per-component reordering.
+
+FORCEFUL RULE: if a component you are about to restyle ALREADY has
+Tailwind classes applied to it from a previous attempt, and those classes
+conflict with, partially implement, or ignore this brief (e.g. missing
+dark: variants, wrong color tokens, wrong sidebar pattern, wrong product
+card order) — DELETE the existing conflicting className content for that
+element and REPLACE it fully with classes that follow this brief. Do not
+try to patch or merge on top of broken previous styling. A half-old,
+half-new className string is worse than a clean rewrite of that string.
+The only thing you must preserve from the existing JSX is non-styling
+attributes covered by Hard Rules 1, 4, and 5 below (logic, structure,
+functionality-bearing attributes) — className content itself is fully up
+for replacement wherever it conflicts with this brief.
+
+
+1. HARD RULES — DO NOT BREAK THESE
+-----------------------------------
+1. Do NOT change any logic. No edits to: state (useState/useReducer/Redux
+   slices), event handler bodies, data fetching, API/Appwrite calls,
+   routing logic, conditionals that control behavior, prop names, prop
+   values passed between components, or function signatures.
+2. You MAY add or change: className strings, inline style props used purely
+   for layout/appearance, wrapper <div>/<span> elements added purely for
+   layout structure (e.g. wrapping a group of elements to apply flex/grid),
+   and purely presentational sub-elements (icons, dividers, skeleton
+   placeholders) — as long as they don't change what data is shown or how
+   the component behaves.
+3. Do NOT touch ANY of the following files, under any circumstances, even
+   if they currently look unstyled, broken, or inconsistent with the rest
+   of the app. This feature is still under active development — leave it
+   completely untouched, including its current styling, structure, and
+   logic. Do not "improve" it, do not restyle it, do not refactor it, do
+   not even reformat it. Skip these entirely in every phase below:
+     src/pages/Contact.jsx
+     src/pages/ContactThread.jsx
+     src/pages/ContactEmptyState.jsx
+     src/components/contact/Quickquestions.jsx
+     src/components/contact/Profilecontactpanel.jsx
+     src/components/contact/Productpicker.jsx
+     src/components/contact/MessageComposer.jsx
+     src/components/contact/Messagebubble.jsx
+     src/components/contact/Faq.jsx
+     src/components/contact/Departmentstab.jsx
+     src/components/contact/Contact.jsx
+     src/components/contact/Chatthread.jsx
+     src/components/forms/ContactForm.jsx
+     src/admin/components/AdminContact.jsx
+     src/admin/components/AdminContactThread.jsx
+     src/admin/components/AdminContactNewConversation.jsx
+     src/admin/components/AdminContactEmptyState.jsx
+     src/admin/components/ContactUserButton.jsx
+   If you find any additional file not listed above whose name or content
+   suggests it is part of the Contact/Messaging feature, treat it as
+   excluded too and ask before touching it rather than assuming it's safe.
+4. Do NOT rename files, folders, components, routes, or CSS classes that
+   other code depends on (e.g. test IDs, aria attributes used by tests,
+   data-* attributes used by scripts).
+5. Do NOT remove functionality-bearing attributes: onClick, onChange,
+   onSubmit, htmlFor, name, id (if referenced elsewhere), aria-* , disabled,
+   required, type on inputs/buttons.
+6. Do NOT introduce new state, new libraries, new routes, or new pages
+   unless explicitly asked in a follow-up instruction.
+7. Do NOT touch backend/service files (Appwrite client setup, API utility
+   files, permissions/roles utils) unless the task is explicitly about
+   those files.
+8. If a component's purpose or intended appearance is unclear from reading
+   it, make a reasonable, professional ecommerce-standard choice and note
+   the assumption in your summary — don't block on it.
+
+
+2. WORKFLOW — DO THIS IN ORDER
+-------------------------------
+Step 1: Analyze first, edit second.
+  - Read the full src/ directory structure.
+  - Identify every page and component: what it renders, what props/data it
+    receives, what state or handlers live inside it, whether it's part of
+    the Contact/Messaging feature (rule 3 above — skip entirely if so).
+  - Identify shared/reusable pieces already in the codebase: buttons, cards,
+    inputs, layout wrappers, icons. Reuse and extend these instead of
+    creating parallel one-off styles.
+  - Check tailwind.config.js for any existing custom theme (colors, fonts,
+    spacing, breakpoints) already defined. If a design token already exists
+    there, use it instead of inventing a new one.
+
+Step 2: Propose the design system once, before mass edits.
+  - Using Section 3 below, produce the concrete Tailwind values you'll use
+    (exact hex codes, font stack, spacing/radius/shadow scale) — either by
+    adding them to tailwind.config.js theme.extend, or as a documented set
+    of utility class combinations if the project prefers inline utilities.
+  - Keep this consistent across the entire app. Every button should look
+    like it came from the same design system; every card should share the
+    same corner radius, shadow depth, and padding rhythm.
+
+Step 3: Restyle in small, reviewable batches, following the exact phase
+  order and file list in Section 5 (EXECUTION PLAN — FILE BY FILE) at the
+  end of this document. Do not invent your own batching — Section 5 is
+  the authoritative plan, built from the real file list of this project.
+  Skip every file listed in Hard Rule 3 entirely.
+
+Step 4: After each batch, summarize what changed and why, in plain terms,
+  before moving to the next batch.
+
+
+3. DESIGN SYSTEM — HOW ETAKHZEEN SHOULD LOOK AND FEEL
+-------------------------------------------------------
+Brand feeling: eTakhzeen should feel like the storefront of a real,
+established company — calm, trustworthy, organized, and slightly premium.
+Think "established regional retailer with a modern web presence," not
+"weekend hackathon project" and not "flashy startup with neon gradients."
+Prioritize clarity and hierarchy over decoration. Every screen should look
+like it was designed by the same person.
+
+3.1 Color palette
+  - Primary brand color: one confident, saturated color used for primary
+    actions (Add to Cart, Buy Now, primary buttons, active nav states,
+    links). Suggested direction: a deep, trustworthy blue or a warm forest
+    green — pick ONE and use it everywhere consistently. Do not use more
+    than one "primary" hue across the app.
+  - Neutral scale: a full gray scale (near-white background, light gray
+    panel backgrounds, mid gray borders/dividers, dark gray/near-black body
+    text). Avoid pure #000000 text — use a dark neutral (e.g. slate-900/
+    gray-900 equivalent) for better feel.
+  - Semantic colors: 
+      success/in-stock = green, 
+      warning/low-stock = amber, 
+      error/out-of-stock/destructive = red, 
+      sale/discount badge = a distinct accent (e.g. red or orange) used only
+      for price-drop indicators so it stays meaningful.
+  - Backgrounds: alternate very subtle neutral tones (white vs. very light
+    gray, e.g. gray-50) between sections to create rhythm without using
+    hard borders everywhere.
+
+3.2 Typography
+  - One primary sans-serif font family for everything (body + headings) —
+    if the project already loads a font, keep it; otherwise use a clean
+    system/Tailwind default stack (e.g. Inter-like).
+  - Clear scale: page titles largest and boldest (e.g. text-3xl/4xl,
+    font-bold), section headings (text-xl/2xl, font-semibold), card/product
+    titles (text-base/lg, font-medium), body/description text (text-sm/base,
+    font-normal, comfortable line-height), meta/secondary text (text-xs/sm,
+    lighter gray).
+  - Prices should visually stand out: bolder weight, primary or near-black
+    color; a struck-through original price next to a discounted price
+    should use a lighter/muted gray with line-through.
+
+3.3 Shape language
+  - Cards and panels: consistent rounded corners across the whole app (pick
+    one radius scale, e.g. "rounded-lg" for cards, "rounded-md" for inputs/
+    buttons/badges — don't mix radius sizes randomly between components).
+  - Elevation: subtle shadows for cards that sit on a page (e.g. a soft
+    shadow-sm at rest, slightly deeper shadow-md on hover for interactive
+    cards like product cards). Avoid heavy/dark drop shadows.
+  - Borders: thin, light neutral borders (1px, light gray) used sparingly to
+    separate content — prefer subtle background-color shifts or spacing
+    over harsh borders where possible.
+  - Buttons: clearly differentiated primary (filled, brand color, white
+    text), secondary (outlined or light-gray filled, dark text), and
+    destructive/danger (red) styles. Consistent height/padding across all
+    buttons of the same size tier. Visible hover and focus states on every
+    interactive element (hover: slightly darker/lighter shade; focus:
+    visible ring for accessibility).
+  - Product cards: image area with consistent aspect ratio across the grid,
+    product name, price (and discounted price if applicable), a small
+    rating/stock indicator if data exists, and a clear add-to-cart action —
+    all with consistent internal padding and spacing so the whole grid
+    feels uniform.
+
+3.4 Spacing & rhythm
+  - Use a consistent spacing scale (Tailwind's default scale is fine) for
+    padding/margin/gaps — don't hand-pick arbitrary pixel values.
+  - Generous whitespace around major sections; tighter, consistent spacing
+    within a single component (e.g. inside a product card).
+  - Page content should sit within a consistent max-width container with
+    consistent horizontal padding on mobile vs desktop.
+
+3.5 Responsiveness
+  - Every restyled component/page must look correct at mobile (base),
+    tablet (sm/md), and desktop (lg/xl) breakpoints. Product grids should
+    reflow (e.g. 1 column mobile → 2–3 tablet → 4+ desktop) using Tailwind's
+    responsive grid utilities.
+  - Navbar must collapse into a mobile-friendly pattern (hamburger/menu)
+    without changing any existing navigation logic — only its presentation.
+
+3.6 Motion & feedback (subtle, not flashy)
+  - Light, quick transitions on hover/focus/state changes (e.g.
+    transition-colors, transition-shadow, 150–200ms) — never long or
+    bouncy animations.
+  - Loading states: skeleton placeholders or a simple, on-brand spinner —
+    not a generic browser default.
+  - Empty states (empty cart, no search results, no orders yet): friendly,
+    on-brand illustration/icon + short message + a clear next action button
+    — not just blank space or a plain "No data" text.
+
+3.7 Accessibility
+  - Maintain sufficient color contrast for text on backgrounds (avoid light
+    gray text on white for anything important).
+  - Keep all existing aria-*, alt text, and semantic HTML elements intact
+    or improve them — never remove them.
+  - Ensure focus states remain visible on all interactive elements after
+    restyling.
+
+
+3.8 Component specifications — be explicit, don't improvise per-component
+-----------------------------------------------------------------------
+Every instance of the same component type must look identical across the
+whole app. Don't restyle the "Login" button differently from the
+"Checkout" button — build one button system and reuse it everywhere.
+
+BUTTONS
+  - Sizes: at minimum a default size and a small size (e.g. for compact
+    areas like cart line-item quantity controls). Consistent height and
+    horizontal padding within each size across the whole app.
+  - Variants:
+      Primary — filled, brand color background, white text, used for the
+        single main action on a screen (Add to Cart, Place Order, Sign In).
+      Secondary — outlined or light-gray filled, dark text, used for
+        lower-priority actions (Cancel, Continue Shopping, View Details).
+      Destructive — red, used only for irreversible/negative actions
+        (Remove from Cart, Delete Account, Cancel Order).
+      Ghost/text — no background, brand-color or gray text, used for
+        tertiary actions inside dense areas (e.g. "Edit" links in a table).
+  - States: default, hover (slightly darker/lighter shade), active/pressed
+    (slightly darker still), focus (visible ring outline, do not remove
+    for keyboard users), disabled (reduced opacity, no pointer cursor,
+    no hover effect).
+  - Icon buttons (cart icon, wishlist heart, close "x"): consistent
+    circular or square tap target size (comfortable for touch, not
+    cramped), same hover/focus treatment as text buttons.
+  - Loading state: when a button triggers an async action already in the
+    code (e.g. "Add to Cart" while the request is in flight), style its
+    existing loading/disabled state clearly (spinner + dimmed) rather than
+    leaving it looking identical to the idle state — but do NOT add new
+    loading state logic if none exists; only style what's already there.
+
+INPUTS / FORMS
+  - Text inputs, email, password, number, textarea: consistent height
+    (textarea taller, same width behavior), consistent padding, light
+    neutral border at rest, border shifts to primary brand color + subtle
+    ring/glow on focus, rounded corners matching the app's radius scale.
+  - Labels: placed above the input (not just relying on placeholder text),
+    small/medium weight, neutral-dark color. Required fields marked with a
+    small asterisk or "(required)" label, styled subtly, not alarming.
+  - Placeholder text: lighter gray than real input text, so users never
+    confuse placeholder content with an actual filled value.
+  - Validation/error state: red border + small red helper text below the
+    field explaining the error, only rendered when the existing logic
+    already flags an error — do not invent new validation logic, only
+    style the existing error state cleanly if one exists in the code.
+  - Success/valid state (if the code already has one, e.g. a checkmark
+    after a valid email): small green accent, subtle, not oversized.
+  - Checkboxes and radio buttons: custom-styled to match the brand (not
+    raw browser defaults), clear checked vs unchecked states, adequate
+    spacing from their label text, comfortable click/tap target including
+    the label itself.
+  - Select/dropdown inputs: same border/radius/focus treatment as text
+    inputs, a clear custom chevron icon, consistent option list styling
+    (hover highlight, selected item indicator) if the dropdown is a custom
+    component rather than a native <select>.
+  - Search bars: rounded pill or rounded-rect shape (pick one and use it
+    everywhere search appears), search icon inside the field, clear "x" to
+    reset when text is present if that logic already exists.
+  - Quantity steppers (cart, product detail): compact [–][number][+]
+    control, consistent button sizing on both sides, disabled state on the
+    minus button when quantity is at its existing minimum (style only,
+    don't add new min/max logic if none exists).
+  - Form layout: consistent vertical spacing between fields, grouped
+    logically (e.g. shipping fields together, payment fields together)
+    using spacing/dividers rather than heavy borders.
+
+BADGES / TAGS
+  - Sale/discount badge: small, high-contrast accent color (e.g. red or
+    orange), rounded, positioned consistently on every product card
+    (e.g. top-left corner of the image).
+  - Stock status badge: green "In Stock", amber "Low Stock", red "Out of
+    Stock" — same shape/size/position pattern as the sale badge, only
+    color changes.
+  - Category/new-arrival tags: neutral or brand-tinted, smaller and less
+    visually loud than the sale badge so the sale badge stays the clear
+    priority signal.
+
+CARDS / PANELS
+  - One consistent card style (radius, shadow, padding, border) reused for
+    product cards, order summary cards, account info panels, and any other
+    "boxed" content — don't let different sections invent their own card
+    look.
+  - Hover behavior on interactive cards (e.g. product cards): subtle lift
+    (slightly deeper shadow and/or a 1–2px translate-up), fast transition.
+
+MODALS / DIALOGS
+  - Centered, dimmed/blurred backdrop, consistent max-width, consistent
+    corner radius and padding, a clearly visible close "x" in a consistent
+    corner, primary action button bottom-right, secondary/cancel button
+    to its left — reuse this same pattern for every modal in the app
+    (confirm-delete, quick-view, image zoom, etc.) if modals already exist.
+
+TOASTS / ALERTS / INLINE NOTICES
+  - Success (green), error (red), warning (amber), info (neutral/blue) —
+    consistent left-accent-bar or icon + background tint pattern, same
+    corner radius and padding as other components, same position on
+    screen every time it's used (only style existing toast/alert logic,
+    don't add a new notification system).
+
+NAVIGATION AIDS
+  - Breadcrumbs (e.g. Home / Category / Product): small text, muted gray
+    with the current page in darker/bold, separated by a simple "/" or
+    chevron icon.
+  - Pagination: consistent button/number sizing, clear active-page
+    indicator (filled or underlined in brand color), disabled state for
+    prev/next at the start/end of the list.
+  - Tabs (e.g. account page sections, product detail "Description /
+    Reviews / Shipping"): underline or pill style — pick one and use it
+    everywhere tabs appear, clear active vs inactive state.
+
+RATINGS
+  - Star rating display: consistent star size and spacing wherever it
+    appears (product card, product detail, reviews list), filled stars in
+    a warm accent color (e.g. amber/gold), empty stars in light gray —
+    only style existing rating data, don't invent new rating logic.
+
+EMPTY / ERROR / 404 STATES
+  - Centered content: simple icon or illustration placeholder, short bold
+    heading, one line of supporting gray text, one clear action button
+    (e.g. "Browse Products" on an empty cart) — consistent pattern reused
+    for empty cart, empty search results, empty order history, and the
+    404 page.
+
+
+3.9 Dark mode — single token system, used everywhere, no exceptions
+-----------------------------------------------------------------------
+This app supports both light and dark mode. Every single color-bearing
+className must include a `dark:` counterpart. Use Tailwind's class-based
+dark mode (`dark` class on a parent, typically <html> or <body> — check
+tailwind.config.js for `darkMode: 'class'`; if it isn't set to class-based
+dark mode yet, set it, since that's a config change needed to support the
+existing toggle logic, not a logic change to a component).
+
+Define and reuse these exact token pairs everywhere a color is needed —
+do not invent new colors per component:
+
+  Page background:        bg-white               dark:bg-gray-950
+  Section/alt background: bg-gray-50              dark:bg-gray-900
+  Header background:      bg-white                dark:bg-gray-950
+  Sidebar background:     bg-white                dark:bg-gray-900
+  Card/panel background:  bg-white                dark:bg-gray-900
+  Border (default):       border-gray-200         dark:border-gray-800
+  Border (subtle):        border-gray-100         dark:border-gray-800/60
+  Body text:               text-gray-900          dark:text-gray-100
+  Secondary/meta text:    text-gray-500           dark:text-gray-400
+  Placeholder text:       text-gray-400           dark:text-gray-500
+  Primary brand color:    [pick ONE, e.g. blue-600]  dark:[same hue,
+                           e.g. blue-500 — one step lighter for contrast
+                           on dark backgrounds]
+  Primary hover:          [primary + one shade darker]  dark:[primary +
+                           one shade lighter than the dark base]
+
+The Header, both Sidebars (user + admin), the Footer, and every Card must
+all pull from this exact same background/text/border token set. If the
+Header is `bg-white dark:bg-gray-950`, the user panel's cards and sidebar
+must NOT independently end up on a different, unrelated color — they use
+the SAME tokens above, so light mode stays visually consistent and dark
+mode stays visually consistent, across every page.
+
+Before starting Phase 1 in Section 5, add these tokens to tailwind.config.js
+under theme.extend.colors if useful (e.g. a `brand` color key), so every
+component can reference `bg-brand-600 dark:bg-brand-500` etc. consistently
+instead of repeating raw Tailwind grays everywhere. This is a config
+addition, not a logic change, and is allowed.
+
+
+3.10 Icon usage discipline
+-----------------------------------------------------------------------
+Icons are a tool for clarity, not decoration. Only add an icon to an
+element in these cases:
+  - It replaces or reinforces a common, universally recognized action:
+    cart, search, user/account, close (x), menu (hamburger), chevron for
+    dropdowns/accordions/pagination, star for ratings, trash for delete,
+    edit/pencil for edit actions, checkmark for success/confirmation.
+  - It already existed in the component before your edit.
+  - This brief explicitly calls for one (e.g. search icon in a search bar,
+    quantity stepper +/-, breadcrumb separator chevron).
+Do NOT add icons next to: form field labels, plain body text, section
+headings, navigation text links, or buttons that already have clear text
+(e.g. don't add a random icon in front of "View Details" or "Continue
+Shopping" unless one is specified above). If you're unsure whether an
+icon belongs somewhere, leave it out — the default is no icon.
+
+If icons are needed and the project already has an icon library installed
+(check package.json — e.g. lucide-react, react-icons, heroicons), use
+that existing library consistently. Do not install a new icon library.
+
+
+3.11 Sidebar & panel layout spec (User Panel + Admin Panel)
+-----------------------------------------------------------------------
+Both `UserPanelSidebar.jsx` (used within the user-facing panel, likely via
+`User.jsx`/`Layout.jsx`) and the sidebar inside `AdminLayout.jsx` must
+follow this exact same structural pattern — they are two instances of one
+design, not two different designs:
+
+  - Fixed width on desktop (e.g. w-64), collapsible/hidden behind a menu
+    toggle on mobile — do not let the sidebar squeeze the main content
+    into an unreadable width on small screens.
+  - Sidebar background and border use the Sidebar background token from
+    Section 3.9, with a right-side border (border-r) separating it from
+    main content, using the Border (default) token.
+  - Nav items: full-width clickable rows, consistent vertical padding,
+    left-aligned icon (if the item already has one) + label, rounded
+    corners on the row itself (not the whole list), consistent gap between
+    icon and label.
+  - Active/current nav item: filled background using a light tint of the
+    primary brand color (or brand color at low opacity) with the primary
+    brand color text, in both light and dark mode — this is the ONE clear
+    visual signal for "you are here," don't rely on font-weight alone.
+  - Inactive nav items: default text color, transparent background, with
+    a subtle hover background (light gray / dark gray tint) and text
+    color shifting toward the primary brand color on hover.
+  - Section grouping (if the sidebar has grouped links, e.g. "Account" /
+    "Orders" / admin's "Products" / "Orders" / "Users" / "Announcements"):
+    small, uppercase, muted-gray section labels above each group, with
+    consistent spacing between groups.
+  - The admin sidebar and user sidebar may differ in WHICH links they
+    show (that's existing logic/data, untouched) but must be visually
+    indistinguishable in terms of spacing, radius, active-state styling,
+    and color tokens used.
+
+
+3.12 Product card / list item — required internal order
+-----------------------------------------------------------------------
+Every component that renders a single product as a card, tile, or list
+row (ProductCard.jsx, GroupCard.jsx, GroupTile.jsx, GroupPreview.jsx,
+CategoryCard.jsx, CategoryTile.jsx, CategoryPreview.jsx, ViewAllTile.jsx,
+and any inline product rendering inside AllProducts.jsx, Products.jsx,
+Product.jsx, GroupProductsPage.jsx, CategoryGroupsPage.jsx,
+AllGroupsPage.jsx, AllCategoriesPage.jsx) must present its content in this
+exact top-to-bottom (or, for a horizontal row layout, left-to-right)
+order — do not reorder this per component:
+
+  1. Image first — consistent aspect ratio across every card in the same
+     grid, image fills its container (object-cover), rounded top corners
+     matching the card's radius if the image is flush with the card edge.
+     Sale/stock badges (Section 3.8) are the only things allowed to
+     overlay on top of the image itself.
+  2. Title/name — directly below the image, clear card-title typography
+     weight from Section 3.2, truncated with ellipsis after 1–2 lines if
+     long (don't let long titles break the grid's row height).
+  3. Short description/meta (if the component already renders one) —
+     smaller, muted text, directly below the title, truncated similarly.
+  4. Rating (if the component already renders one) — below description,
+     using the star rating spec from Section 3.8.
+  5. Price (and struck-through original price if there's a discount) —
+     below rating, using the price typography from Section 3.2.
+  6. Action row last — Add to Cart / View button and any icon actions
+     (wishlist heart, quick view), at the bottom of the card, using the
+     button spec from Section 3.8.
+
+Only render the pieces (2–6) that the component already renders based on
+its existing data/props — do not add new fields. This rule governs ORDER
+and SPACING of whatever the component already shows, not what data it
+shows.
+
+
+4. WHAT "DONE WELL" LOOKS LIKE
+--------------------------------
+- A user could screenshot any two pages of the app and immediately tell
+  they're from the same product, made by the same team.
+- Nothing about how the app behaves has changed — every button still does
+  exactly what it did before, every form still submits the same way, every
+  piece of data still displays the same values it did before.
+- The Contact/Messaging feature looks and behaves exactly as it did before
+  this restyle — untouched.
+- The codebase still runs without errors, and no console warnings were
+  introduced by broken class names or missing elements.
+- Every color-bearing className has a working dark: counterpart, and
+  switching the app's dark mode toggle changes every page/panel together,
+  consistently — never one component staying stuck in the wrong theme.
+- The user panel sidebar and the admin panel sidebar are visually
+  siblings — same spacing, radius, active-state, and color tokens.
+- Every product card/list item, everywhere in the app, follows the exact
+  image → title → description → rating → price → action order from
+  Section 3.12.
+
+
+5. EXECUTION PLAN — FILE BY FILE, PHASE BY PHASE
+-------------------------------------------------------
+This is the authoritative plan referenced by Step 3. Work through phases
+in order. Do not skip ahead to a later phase before finishing and logging
+the current one in RESTYLE-PROGRESS.md. Files under "EXCLUDED" must never
+be touched in any phase (see Hard Rule 3).
+
+PHASE 0 — Foundation (do this first, everything else depends on it)
+  tailwind.config.js            (enable class-based dark mode; add brand
+                                  color token(s) from Section 3.9 if useful)
+  src/components/structure/Button.jsx     (full button system, Section 3.8)
+  src/components/structure/Input.jsx      (full input system, Section 3.8)
+  src/Layout.jsx                          (base page shell, bg/text tokens)
+  src/components/Header.jsx               (Section 3.9 header tokens)
+  src/components/Footer.jsx               (Section 3.9 footer tokens)
+  src/App.jsx                             (styling only if it renders any
+                                            visible shell/loading UI)
+
+PHASE 1 — User panel, home, and site-wide UI chrome
+  src/components/UserPanelSidebar.jsx     (Section 3.11 sidebar spec)
+  src/pages/User.jsx
+  src/pages/Home.jsx
+  src/components/Hero.jsx
+  src/components/NotificationBell.jsx
+  src/components/AnnouncementPopup.jsx
+  src/pages/Announcements.jsx
+  src/components/BlockedGuard.jsx         (styling only if it renders any
+                                            visible message/UI)
+  src/pages/Blocked.jsx
+  src/pages/Error.jsx
+
+PHASE 2 — Product browsing (cards, grids, filters, pagination)
+  src/components/products/ProductCard.jsx        (Section 3.12 order)
+  src/components/products/GroupCard.jsx          (Section 3.12 order)
+  src/components/products/GroupTile.jsx          (Section 3.12 order)
+  src/components/products/GroupPreview.jsx       (Section 3.12 order)
+  src/components/products/GroupsSection.jsx
+  src/components/products/CategoryCard.jsx       (Section 3.12 order)
+  src/components/products/CategoryTile.jsx       (Section 3.12 order)
+  src/components/products/CategoryPreview.jsx    (Section 3.12 order)
+  src/components/products/CategoriesSection.jsx
+  src/components/products/ViewAllTile.jsx        (Section 3.12 order)
+  src/components/products/ProductFilters.jsx
+  src/components/products/FilterSidebar.jsx
+  src/components/products/Pagination.jsx         (Section 3.8 pagination)
+  src/components/products/AllProducts.jsx
+  src/pages/Products.jsx
+  src/pages/Product.jsx
+  src/pages/GroupProductsPage.jsx
+  src/pages/CategoryGroupsPage.jsx
+  src/pages/AllGroupsPage.jsx
+  src/pages/AllCategoriesPage.jsx
+
+PHASE 3 — Cart, checkout, orders, auth forms
+  src/pages/Cart.jsx
+  src/components/forms/OrderForm.jsx
+  src/pages/Orders.jsx
+  src/pages/Order.jsx
+  src/pages/Signup.jsx
+  src/components/forms/SignupForm.jsx
+  src/pages/Login.jsx
+  src/components/forms/LoginForm.jsx
+  src/components/forms/Logout.jsx
+  src/protectedRoutes/RedirectIfAuthenticated.jsx  (styling only if it
+                                                     renders visible UI)
+  src/protectedRoutes/CheckUser.jsx                (styling only if it
+                                                     renders visible UI)
+  src/protectedRoutes/CheckAdmin.jsx               (styling only if it
+                                                     renders visible UI)
+
+PHASE 4 — Admin panel
+  src/admin/components/AdminLayout.jsx     (Section 3.11 sidebar spec —
+                                             must match UserPanelSidebar)
+  src/admin/components/AdminDashboard.jsx
+  src/admin/components/AdminProducts.jsx
+  src/admin/components/ProductList.jsx
+  src/admin/components/ProductForm.jsx
+  src/admin/components/RichTextEditor.jsx
+  src/admin/components/BulkUploadForm.jsx
+  src/admin/components/GroupsView.jsx
+  src/admin/components/CategoriesView.jsx
+  src/admin/components/AdminOrders.jsx
+  src/admin/components/AdminOrderDetail.jsx
+  src/admin/components/AdminUsers.jsx
+  src/admin/components/AdminUserProfile.jsx
+  src/admin/components/AdminAnnouncements.jsx
+  src/admin/components/AdminAnnouncementDetail.jsx
+
+EXCLUDED FROM ALL PHASES — see Hard Rule 3, never touch:
+  src/pages/Contact.jsx
+  src/pages/ContactThread.jsx
+  src/pages/ContactEmptyState.jsx
+  src/components/contact/*  (all files in this folder)
+  src/components/forms/ContactForm.jsx
+  src/admin/components/AdminContact.jsx
+  src/admin/components/AdminContactThread.jsx
+  src/admin/components/AdminContactNewConversation.jsx
+  src/admin/components/AdminContactEmptyState.jsx
+  src/admin/components/ContactUserButton.jsx
+
+NOT STYLED (no visible UI / entry point only, skip unless it errors):
+  src/main.jsx
+
+After finishing each phase, log it in RESTYLE-PROGRESS.md per the format
+already agreed (what changed, what's not touched yet, what's next), then
+STOP and wait to be told to continue.
+
+
+END OF BRIEF

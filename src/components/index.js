@@ -4,10 +4,16 @@ export { default as Hero } from './Hero';
 export { default as BlockedGuard } from './BlockedGuard';
 export { default as NotificationBell } from './NotificationBell';
 export { default as AnnouncementPopup } from './AnnouncementPopup';
+export { default as ThemeToggle } from "./ThemeToggle";
+export { default as OrderInsights } from "./OrderInsights";
 
 export { Input, Button } from './structure';
 
 export { LoginForm, ContactForm, SignupForm, Logout, OrderForm } from './forms';
+
+export { ChatThread, Contact, DepartmentTabs, Faq, MessageComposer, MessageBubble, ProfileContactPanel, ProductPicker, QuickQuestions } from './contact'
+
+export { UserPanelSidebar, UserPanelLayout } from './user';
 
 export { default as AllProducts } from './products/AllProducts';
 export { default as CategoryCard } from './products/CategoryCard';

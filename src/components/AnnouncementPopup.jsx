@@ -75,8 +75,8 @@ function AnnouncementPopup() {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-            <div className="w-full max-w-lg rounded-lg bg-neutral-950 border border-neutral-800 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/60 px-4 dark:bg-black/70">
+            <div className="w-full max-w-lg overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
                 {announcement.coverFileId && (
                     <img
                         src={announcementService.getImageUrl({ fileId: announcement.coverFileId })}
@@ -87,27 +87,27 @@ function AnnouncementPopup() {
                 <div className="p-5">
                     <h2 className="text-lg font-semibold mb-2">{announcement.title}</h2>
                     <div
-                        className="text-sm text-neutral-300 prose prose-invert max-w-none mb-4"
+                        className="prose mb-4 max-w-none text-sm text-gray-500 dark:text-gray-400"
                         dangerouslySetInnerHTML={{ __html: announcement.contentHtml }}
                     />
                     <div className="flex flex-wrap gap-2">
                         {announcement.buttonLabel && announcement.buttonHref && (
                             <button
                                 onClick={handleButtonClick}
-                                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium"
+                                className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
                             >
                                 {announcement.buttonLabel}
                             </button>
                         )}
                         <button
                             onClick={handleViewFull}
-                            className="rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium"
+                            className="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
                         >
                             View full announcement
                         </button>
                         <button
                             onClick={handleClose}
-                            className="rounded-md px-4 py-2 text-sm font-medium text-neutral-400 hover:text-neutral-200"
+                            className="rounded-md px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                         >
                             {hasMore ? 'Dismiss & next' : 'Dismiss'}
                         </button>

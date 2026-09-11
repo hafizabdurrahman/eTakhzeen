@@ -508,6 +508,33 @@ export class Service {
         }
     }
 
+    // Replace the existing `updateProductOrder` method inside src/backend/service.js
+    // (the class `Service`) with this version. The old one called `databases`,
+    // `DATABASE_ID`, and `PRODUCTS_COLLECTION_ID` — none of which exist in this
+    // file, so every drag-reorder save was throwing a ReferenceError.
+    //
+    // Requires an `order` (integer) attribute on the products table.
+
+    async updateProductOrder(updates) {
+        // updates: [{ id, order }, ...]
+        try {
+            await Promise.all(
+                updates.map(({ id, order }) =>
+                    this.table.updateRow({
+                        databaseId: this.databaseId,
+                        tableId: this.tableId,
+                        rowId: id,
+                        data: { order },
+                    })
+                )
+            );
+            return true;
+        } catch (error) {
+            console.error('service.updateProductOrder failed:', error);
+            return false;
+        }
+    }
+
 }
 
 const service = new Service();

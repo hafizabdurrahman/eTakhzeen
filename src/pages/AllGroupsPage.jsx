@@ -14,13 +14,13 @@ function AllGroupsPage() {
     }, [dispatch, categoryName]);
 
     return (
-        <div>
-            <div className="flex items-center gap-2 text-sm text-neutral-400 mb-4">
-                <Link to="/products" className="hover:underline">Products</Link>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Link to="/products" className="hover:text-brand-600 hover:underline dark:hover:text-brand-500">Products</Link>
                 {categoryName && (
                     <>
                         <span>/</span>
-                        <Link to={`/products/category/${encodeURIComponent(categoryName)}`} className="hover:underline">
+                        <Link to={`/products/category/${encodeURIComponent(categoryName)}`} className="hover:text-brand-600 hover:underline dark:hover:text-brand-500">
                             {categoryName}
                         </Link>
                     </>
@@ -29,12 +29,12 @@ function AllGroupsPage() {
                 <span>All groups</span>
             </div>
 
-            <h1 className="text-xl font-semibold mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
                 {categoryName ? `All groups in ${categoryName}` : 'All groups'}
             </h1>
 
-            {groups.status === 'loading' && <p className="text-neutral-400">Loading...</p>}
-            {groups.status === 'failed' && <p className="text-red-400">Failed to load groups.</p>}
+            {groups.status === 'loading' && <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>}
+            {groups.status === 'failed' && <p className="text-sm text-red-600 dark:text-red-400">Failed to load groups.</p>}
             {groups.status === 'succeeded' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {groups.items.map((g) => (
@@ -47,7 +47,7 @@ function AllGroupsPage() {
                         />
                     ))}
                     {groups.items.length === 0 && (
-                        <p className="text-neutral-400 col-span-full">No groups yet.</p>
+                        <p className="col-span-full text-sm text-gray-500 dark:text-gray-400">No groups yet.</p>
                     )}
                 </div>
             )}

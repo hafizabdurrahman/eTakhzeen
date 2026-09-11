@@ -11,16 +11,16 @@ function GroupPreview() {
     const groups = useSelector((s) => s.products.catalogGroups);
 
     useEffect(() => {
-        dispatch(fetchCatalogGroups({})); // no category = groups across the whole catalog
+        dispatch(fetchCatalogGroups({}));
     }, [dispatch]);
 
     return (
         <section>
-            <h2 className="text-lg font-medium mb-4">Shop by group</h2>
-            {groups.status === 'loading' && <p className="text-neutral-400">Loading groups...</p>}
-            {groups.status === 'failed' && <p className="text-red-400">Failed to load groups.</p>}
+            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">Shop by group</h2>
+            {groups.status === 'loading' && <p className="text-sm text-stone-500 dark:text-stone-400">Loading groups...</p>}
+            {groups.status === 'failed' && <p className="text-sm text-red-600 dark:text-red-400">Failed to load groups.</p>}
             {groups.status === 'succeeded' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {groups.items.slice(0, PREVIEW_LIMIT).map((g) => (
                         <GroupTile
                             key={g.name}
@@ -34,7 +34,7 @@ function GroupPreview() {
                         <ViewAllTile to="/products/groups" label="View all groups" />
                     )}
                     {groups.items.length === 0 && (
-                        <p className="text-neutral-400 col-span-full">No groups yet.</p>
+                        <p className="col-span-full text-sm text-stone-500 dark:text-stone-400">No groups yet.</p>
                     )}
                 </div>
             )}

@@ -19,12 +19,12 @@ function RedirectIfAuthenticated({ children }) {
             // Land on their profile page first — that's where the blocked
             // alert lives. BlockedGuard takes over from there if they try
             // to go anywhere else.
-            navigate(`/user/${userData['$id']}`, { replace: true });
+            navigate(`/${userData['$id']}/profile`, { replace: true });
             return;
         }
 
         const isAdmin = userData.labels?.includes('admin');
-        navigate(isAdmin ? '/admin' : `/user/${userData['$id']}`, { replace: true });
+        navigate(isAdmin ? '/admin' : `/${userData['$id']}/profile`, { replace: true });
     }, [authChecked, status, userData, navigate]);
 
     if (!authChecked) return null;

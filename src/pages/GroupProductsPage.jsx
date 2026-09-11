@@ -36,21 +36,21 @@ function GroupProductsPage() {
     }
 
     return (
-        <div>
-            <div className="flex items-center gap-2 text-sm text-neutral-400 mb-4">
-                <Link to="/products" className="hover:underline">Products</Link>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-6 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Link to="/products" className="hover:text-brand-600 hover:underline dark:hover:text-brand-500">Products</Link>
                 <span>/</span>
-                <Link to={`/products/category/${encodeURIComponent(categoryName)}`} className="hover:underline">
+                <Link to={`/products/category/${encodeURIComponent(categoryName)}`} className="hover:text-brand-600 hover:underline dark:hover:text-brand-500">
                     {categoryName}
                 </Link>
                 <span>/</span>
                 <span>{groupName}</span>
             </div>
 
-            {catalog.status === 'loading' && <p className="text-neutral-400">Loading products...</p>}
-            {catalog.status === 'failed' && <p className="text-red-400">Failed to load products.</p>}
+            {catalog.status === 'loading' && <p className="text-sm text-gray-500 dark:text-gray-400">Loading products...</p>}
+            {catalog.status === 'failed' && <p className="text-sm text-red-600 dark:text-red-400">Failed to load products.</p>}
             {catalog.status === 'succeeded' && catalog.items.length === 0 && (
-                <p className="text-neutral-400">No products in this group yet.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No products in this group yet.</p>
             )}
             {catalog.items.length > 0 && (
                 <>

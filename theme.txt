@@ -1,0 +1,535 @@
+================================================================================
+ DESIGN SYSTEM / THEME GUIDE
+ Stack: React + Tailwind CSS + lucide-react icons
+ Audience: any developer or AI agent adding/editing UI in this codebase
+================================================================================
+
+HOW TO USE THIS FILE
+--------------------------------------------------------------------------------
+This is not a mood board — every rule below maps to literal Tailwind classes
+already used across the codebase (AdminProducts, ProductList, ProductForm,
+CategoriesView, GroupsView, BulkUploadForm, ProductDetailModal, and the shared
+ui/ primitives: Checkbox, Toggle, SegmentedControl, Select, DonutChart,
+GroupedBarChart, HeatmapCalendar, ChartTooltip). When building a new
+component, don't invent new colors, radii, or spacing — copy the matching
+pattern from this file. Consistency matters more than creativity here.
+
+Every interactive surface must be styled for BOTH light and dark mode
+(Tailwind's `dark:` variant) and must have a visible hover and/or focus
+state. There is no exception to this — see "Dark Mode Rules" below.
+
+
+1. COLOR SYSTEM
+--------------------------------------------------------------------------------
+Two color families do all the work: a neutral "stone" scale for structure/
+text/borders, and a custom "brand" scale for anything interactive or
+emphasized. A small set of semantic colors (red, emerald) is used ONLY for
+destructive/success states — never decoratively.
+
+  NEUTRAL — Tailwind's built-in `stone` palette
+    stone-50   page/section backgrounds, subtle hover fills, empty states
+    stone-100  disabled backgrounds, unfilled chart tracks, thumbnail placeholders
+    stone-200  default borders (light mode)
+    stone-300  input borders, dividers that need slightly more contrast
+    stone-400  placeholder text, disabled icons, chevrons
+    stone-500  secondary/muted text (captions, helper text, counts)
+    stone-600  --
+    stone-700  body text on light surfaces (headings sometimes use 900)
+    stone-800  dark-mode borders, dark-mode hover fills, dark-mode disabled bg
+    stone-900  primary text (light mode), page background (dark mode surfaces)
+    stone-950  deepest dark-mode background (rarely — e.g. editor body)
+
+    Rule of thumb for dark mode: every `stone-N` light-mode class gets a
+    `dark:stone-(1000-N)` counterpart, e.g. `text-stone-900 dark:text-stone-100`,
+    `border-stone-200 dark:border-stone-800`, `bg-stone-50 dark:bg-stone-900`.
+
+  BRAND — custom Tailwind color, used for every interactive/primary element
+    brand-50   light tinted backgrounds (active tab fill, badge fill, banners)
+    brand-100  focus ring color (`focus:ring-brand-100`)
+    brand-400  dark-mode hover text on links
+    brand-500  dark-mode primary fill (buttons/toggles/active states use 500
+               in dark mode instead of 600, one step lighter for contrast)
+    brand-600  LIGHT-MODE PRIMARY — default button/toggle/link/active-state color
+    brand-700  hover state for brand-600 elements; link/active-tab text
+    brand-500/10, /15, /20, /30  translucent brand fills for dark-mode chips,
+               active nav backgrounds, and focus rings (dark mode)
+
+    Never use a raw hex blue/indigo/etc. for interactive elements — always
+    `brand-*`. If brand-* isn't in tailwind.config yet, it must be added
+    there (a single-hue scale, 50 through 900) rather than substituted.
+
+  SURFACE — custom off-white, replaces pure white in LIGHT MODE ONLY
+    cream        #FDFBF6 — light-mode background for cards, inputs, modals,
+                 tables, dropdowns/selects, and unchecked checkboxes. Pure
+                 white (`bg-white`) reads too bright/glary next to the warm
+                 `stone` neutrals, so every light-mode surface that used to
+                 be `bg-white` now uses `bg-cream` instead.
+    cream-hover  #F7F3EA — one step deeper, for a light-mode hover fill on a
+                 cream surface (e.g. a select option hover) where `stone-50`
+                 would be too close to the surface color to read as a hover.
+    Dark mode is UNCHANGED by this — every `bg-cream` still pairs with the
+    same `dark:bg-stone-900` (or whatever the existing dark counterpart was)
+    it had before. If `cream` isn't in tailwind.config yet, add it there
+    (same pattern as `brand`) rather than substituting a raw hex inline.
+
+  SEMANTIC (destructive / success only)
+    red-600 / red-400 (dark)   destructive text, error banners, delete buttons
+    red-50  / red-500/10 (dark) destructive banner backgrounds
+    red-700 / red-500 (dark)    destructive button hover
+    emerald-300..900            heatmap intensity scale ONLY (see §9)
+
+  CHART PALETTE (categorical data — donut segments, bar comparisons)
+    Cycle through this fixed 8-color array, in order, never randomized:
+      #0ea5e9 (sky)   #f97316 (orange)  #8b5cf6 (violet)  #10b981 (emerald)
+      #ef4444 (red)   #eab308 (yellow)  #6366f1 (indigo)  #14b8a6 (teal)
+    Index with `COLORS[i % COLORS.length]` so the palette repeats gracefully
+    past 8 categories instead of erroring.
+
+
+2. TYPOGRAPHY
+--------------------------------------------------------------------------------
+No custom font is loaded — this is the Tailwind default stack. Hierarchy is
+built entirely from size + weight + color, not font family.
+
+  Page title       text-2xl sm:text-3xl font-bold   text-stone-900 dark:text-stone-100
+  Section heading  text-xl font-semibold            text-stone-900 dark:text-stone-100
+  Card/modal title text-lg font-semibold            text-stone-900 dark:text-stone-100
+  Sub-heading      text-sm font-semibold            text-stone-900 dark:text-stone-100
+  Body text        text-sm                          text-stone-700 / stone-600 dark:stone-300
+  Muted/caption    text-xs or text-sm               text-stone-500 dark:text-stone-400
+  Form label       text-sm font-medium              text-stone-900 dark:text-stone-100
+  Error/help text  text-xs                          text-red-600 dark:text-red-400
+  Table header     text-sm, inherits muted color from thead background
+
+Line-height and tracking are left at Tailwind defaults — never override
+manually. Truncate long single-line text with `truncate` rather than letting
+it wrap in table rows, cards, or badges.
+
+
+3. SPACING & LAYOUT
+--------------------------------------------------------------------------------
+  Page container         no fixed max-width in admin views (fills parent
+                          layout); storefront/auth pages use
+                          `mx-auto max-w-md` (login), `max-w-2xl` (signup),
+                          `max-w-6xl` (checkout) with `px-4 py-8/12 sm:px-6`
+  Card padding            p-5 (standard), p-6 sm:p-8 (auth cards — roomier)
+  Section vertical gap    space-y-4 to space-y-6 between stacked blocks
+  Form field gap          space-y-4 or space-y-5 between fields
+  Grid gaps                gap-3 (dense controls), gap-4/gap-5 (form grids/cards)
+  Inline icon+text gap    gap-1.5 to gap-2
+  Responsive columns      grid-cols-1 sm:grid-cols-2 is the default breakpoint
+                          for pairing form fields two-per-row on desktop,
+                          stacked on mobile. Never assume desktop-first.
+
+Mobile-first is mandatory: buttons default to `w-full`, then `sm:w-auto`.
+Flex rows default to `flex-col`, then `sm:flex-row`. Tab bars use
+`overflow-x-auto` + `whitespace-nowrap` on a `-mx-4 px-4 sm:mx-0 sm:px-0`
+wrapper instead of wrapping tabs onto a second line.
+
+
+4. BORDER RADIUS
+--------------------------------------------------------------------------------
+  rounded-md    default for inputs, buttons, small cards, table containers,
+                dropdown menus, badges-as-chips
+  rounded-lg    slightly more prominent cards (dropzone, fact tiles, chart panels)
+  rounded-xl    modals, hero/header cards on auth pages
+  rounded-full  pill buttons (primary CTA), toggle switches, checkboxes'
+                circular disabled state N/A (checkboxes use rounded-md),
+                avatar/icon circles, segmented control track, chart legend dots
+
+Never use `rounded-sm` or unrounded corners on interactive elements.
+
+
+5. ELEVATION (SHADOWS & BORDERS)
+--------------------------------------------------------------------------------
+Elevation is expressed with a 1px border FIRST, shadow SECOND — borders do
+most of the work; shadows are subtle, not dramatic.
+
+  Resting card       border border-stone-200 dark:border-stone-800
+                      + shadow-sm  (bg-cream dark:bg-stone-900)
+  Hovered card        add hover:shadow-md hover:-translate-y-0.5
+                      transition-all  (a small, deliberate lift — see §11)
+  Primary CTA button  shadow-md shadow-brand-600/20, hover:shadow-lg
+                      shadow-brand-600/25 (colored shadow tinted to the
+                      button's own color, not a generic gray shadow)
+  Modal panel         shadow-2xl (the one place a heavy shadow is correct,
+                      because it's floating over a dimmed backdrop)
+  Dropdown/menu       shadow-lg
+  Flat elements       (table rows, list items inside a card) no shadow —
+                      rely on the parent card's border only
+
+Never use `shadow` or `shadow-xl` — the scale used is strictly
+sm / md / lg / 2xl depending on the tier above.
+
+
+6. BUTTONS
+--------------------------------------------------------------------------------
+  PRIMARY (default action — submit, save, confirm)
+    rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white
+    transition-colors hover:bg-brand-700
+    disabled:cursor-not-allowed disabled:opacity-50
+    dark:bg-brand-500 dark:hover:bg-brand-600
+
+  PRIMARY — BIG PILL CTA (page-level "Add X" action, one per page max)
+    rounded-full bg-brand-600 py-3 pl-4 pr-5 text-sm font-semibold text-white
+    shadow-md shadow-brand-600/20 transition-all
+    hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-600/25
+    active:translate-y-0
+    dark:bg-brand-500 dark:shadow-brand-500/20 dark:hover:bg-brand-600
+    — pairs with a leading icon in its own translucent circle:
+      <span className="flex h-6 w-6 items-center justify-center rounded-full
+        bg-white/20 transition-transform group-hover:rotate-90">
+        <Plus size={16} strokeWidth={2.75} />
+      </span>
+    (the button itself needs `group` class for the icon rotation to trigger)
+
+  SECONDARY / CANCEL
+    rounded-md bg-stone-100 px-4 py-2 text-sm font-medium text-stone-900
+    transition-colors hover:bg-stone-200
+    dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700
+
+  DESTRUCTIVE
+    rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white
+    shadow-sm transition-colors hover:bg-red-700
+    disabled:cursor-not-allowed disabled:opacity-50
+    dark:bg-red-500 dark:hover:bg-red-600
+
+  ICON-ONLY BUTTON (table row actions, modal close, remove-item)
+    rounded-md p-1.5 text-stone-500 transition-colors
+    hover:bg-{tint}-50 hover:text-{tint}-700
+    dark:text-stone-400 dark:hover:bg-{tint}-500/15 dark:hover:text-{tint}-400
+    — {tint} is brand for edit/neutral actions, red for delete/remove.
+    Always pair with `title` and `aria-label` — icon-only buttons are never
+    exempt from accessible naming.
+
+  TEXT / LINK BUTTON
+    text-sm font-medium text-brand-600 hover:underline dark:text-brand-500
+
+All buttons: `type="button"` unless it's an actual form submit. All buttons
+with an async handler must disable + show a loading label
+("Saving...", "Logging in...", "Creating...") rather than a spinner icon —
+this codebase prefers text-state buttons over spinner animations.
+
+
+7. FORM INPUTS
+--------------------------------------------------------------------------------
+  TEXT INPUT / TEXTAREA (the canonical class string — copy verbatim)
+    w-full rounded-md border border-stone-200 bg-cream px-3 py-2 text-sm
+    text-stone-900 placeholder:text-stone-400
+    focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100
+    dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100
+    dark:placeholder:text-stone-500 dark:focus:border-brand-500
+    dark:focus:ring-brand-500/20
+    (auth-context forms swap `stone` for `gray` historically — see §12 for
+    the migration note; new work should use `stone` to match the rest of
+    the app)
+
+  LABEL
+    mb-1.5 block text-sm font-medium text-stone-900 dark:text-stone-100
+    — always a real <label htmlFor="id">, paired with a matching input id.
+    Never rely on placeholder text as a label substitute.
+
+  INPUT WITH LEADING ICON (email/password/search fields)
+    Wrap input + icon in `relative`. Icon:
+      <Icon size={16} className="pointer-events-none absolute left-3
+        top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+    Input gets `pl-9` instead of `px-3` on the left. A trailing icon
+    (e.g. password show/hide) uses `right-2.5` and needs pointer-events
+    enabled (it's a real button), sized `pr-10` on the input.
+
+  FILE INPUT (simple — e.g. product image)
+    w-full text-sm text-stone-500
+    file:mr-3 file:rounded-md file:border-0 file:bg-stone-100 file:px-3
+    file:py-2 file:text-sm file:font-medium file:text-stone-900
+    dark:text-stone-400 dark:file:bg-stone-800 dark:file:text-stone-100
+
+  FILE INPUT (prominent — folder/bulk upload dropzone)
+    A label-wrapped dashed dropzone, not a bare input:
+      flex cursor-pointer flex-col items-center gap-2 rounded-lg
+      border-2 border-dashed border-stone-300 bg-stone-50 px-4 py-8
+      text-center transition-colors
+      hover:border-brand-400 hover:bg-brand-50/50
+      dark:border-stone-700 dark:bg-stone-800/50
+      dark:hover:border-brand-500 dark:hover:bg-brand-500/5
+    Contains a centered icon (e.g. FolderUp, size 26, stone-400/500), a
+    bold status line ("N image(s) selected" / "Click to choose a folder"),
+    and a muted helper line. The actual <input type="file"> is `hidden`.
+
+  CUSTOM SELECT (replaces native <select> everywhere — see ui/Select.jsx)
+    Trigger button: flex items-center justify-between gap-2 rounded-md
+    border bg-cream px-3 py-2 text-left text-sm shadow-sm
+    border-stone-300 (default) → border-brand-600 ring-2 ring-brand-100
+    when open (dark: border-stone-700 → border-brand-500 ring-brand-500/20)
+    Chevron (ChevronDown, size 16) rotates 180° when open via
+    `transition-transform duration-150 ${open ? 'rotate-180' : ''}`.
+    Listbox panel: absolute z-20 mt-1.5 max-h-64 w-full overflow-auto
+    rounded-md border border-stone-200 bg-cream py-1 shadow-lg
+    dark:border-stone-800 dark:bg-stone-900. Each option is a full-width
+    button, active option gets `font-medium text-brand-700
+    dark:text-brand-400` + a trailing Check icon (size 14).
+
+  CHECKBOX (ui/CheckBox.jsx — real button[role=checkbox], never native input)
+    h-5 w-5 rounded-md border-2, unchecked: border-stone-300 bg-cream
+    hover:border-brand-400 (dark: border-stone-600 bg-stone-900
+    hover:border-brand-500). Checked/indeterminate: border-brand-600
+    bg-brand-600 (dark: border-brand-500 bg-brand-500), with a white
+    Check or Minus icon (lucide, size 13, strokeWidth 3) inside.
+
+  TOGGLE SWITCH (ui/Toggle.jsx — real button[role=switch])
+    Track: h-6 w-11 (md) or h-5 w-9 (sm) rounded-full border-2
+    border-transparent. Off: bg-stone-300 dark:bg-stone-700. On: color
+    is semantic — `brand` (bg-brand-600 dark:bg-brand-500) for a positive
+    state like "Active"/"Featured", `danger` (bg-red-600 dark:bg-red-500)
+    for a state whose "on" is bad, like "Blocked". Thumb: white circle,
+    translate-x-5/translate-x-0.5 (md) sliding with
+    `transition duration-200 ease-in-out`.
+
+  SEGMENTED CONTROL (ui/SegmentedControl.jsx — pill-shaped radio group)
+    Track: inline-flex gap-0.5 rounded-full border border-stone-200
+    bg-stone-100 p-0.5 (dark: border-stone-800 bg-stone-800/70). Each
+    option is a rounded-full button; active gets bg-brand-600 text-white
+    shadow-sm (dark: bg-brand-500), inactive gets text-stone-600
+    hover:text-stone-900 (dark: text-stone-400 hover:text-stone-100).
+    Two sizes: sm = px-2.5 py-1 text-xs, md/lg = px-3.5 py-1.5 text-sm.
+    Use this instead of native `<input type="radio">` rows everywhere.
+
+  CARD-STYLE OPTION PICKER (payment method, and similar "pick one of 2-4
+  rich options" cases — an alternative to SegmentedControl when each
+  option needs an icon + description, not just a label)
+    Each option is a button: relative flex items-start gap-3 rounded-lg
+    border p-4 text-left transition-colors. Inactive: border-stone-200
+    hover:border-stone-300 (dark: border-stone-800
+    hover:border-stone-700). Active: border-brand-600 bg-brand-50
+    (dark: border-brand-500 bg-brand-500/10), plus a small icon circle
+    (bg-brand-600 text-white when active, bg-stone-100 text-stone-500
+    when not) and a check badge pinned `absolute right-3 top-3`.
+
+
+8. CARDS & CONTAINERS
+--------------------------------------------------------------------------------
+  Standard card
+    rounded-lg border border-stone-200 bg-cream p-5 shadow-sm
+    dark:border-stone-800 dark:bg-stone-900
+
+  Nested/inset panel inside a card (e.g. a chart inside a modal section)
+    rounded-lg border border-stone-200 p-4 dark:border-stone-800
+    (no separate background — inherits the parent's)
+
+  Empty state
+    rounded-lg border border-dashed border-stone-300 bg-stone-50 p-8
+    text-center dark:border-stone-700 dark:bg-stone-900
+    with a single muted message, `text-sm text-stone-500 dark:text-stone-400`
+
+  Info/status banner (inline, non-blocking notice)
+    rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-700
+    dark:bg-brand-500/10 dark:text-brand-400
+
+  Error banner
+    rounded-md bg-red-50 px-3 py-2 text-sm text-red-600
+    dark:bg-red-500/10 dark:text-red-400
+    (prefix with an AlertCircle icon, size 14, `shrink-0`, when the banner
+    sits above a form rather than inline under one field)
+
+  Selected-items banner (bulk actions bar)
+    rounded-md border border-brand-200 bg-brand-50 px-3 py-2
+    dark:border-brand-500/30 dark:bg-brand-500/10
+
+
+9. DATA DISPLAY (tables, badges, charts)
+--------------------------------------------------------------------------------
+  TABLE
+    Wrapper: overflow-x-auto rounded-lg border border-stone-200 bg-cream
+    shadow-sm dark:border-stone-800 dark:bg-stone-900
+    Table: w-full min-w-[48rem] text-left text-sm (min-width forces
+    horizontal scroll on mobile instead of crushing columns)
+    Header row: border-b border-stone-200 bg-stone-50 text-stone-500
+    dark:border-stone-800 dark:bg-stone-800/40 dark:text-stone-400
+    Body row: border-b border-stone-100 transition-colors
+    hover:bg-stone-50 dark:border-stone-800/60 dark:hover:bg-stone-800/60
+    (add `cursor-pointer` + onClick when the row is a navigation target;
+    always `e.stopPropagation()` on any nested checkbox/button cell so it
+    doesn't also trigger the row click)
+
+  BADGE / CHIP (category tag, group tag, status pill)
+    inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs
+    font-medium — brand variant: bg-brand-50 text-brand-700
+    (dark: bg-brand-500/10 text-brand-400); neutral variant:
+    bg-stone-100 text-stone-600 (dark: bg-stone-800 text-stone-300)
+
+  ICON CHIP (colored circular icon backdrop, used in list rows and fact tiles)
+    flex h-9 w-9 items-center justify-center rounded-full, background is
+    the item's own chart color at ~10% opacity (inline style
+    `backgroundColor: \`${color}1a\`` — hex + alpha suffix), icon colored
+    to match via inline `style={{ color }}`
+
+  DONUT CHART (ui/DonutChart.jsx)
+    SVG ring, track color stroke-stone-100 dark:stroke-stone-800, segments
+    colored from the chart palette (§1), animate stroke-dasharray in on
+    mount via requestAnimationFrame (not CSS keyframes — this keeps the
+    draw-in synced to real data length). Center label: 2xl bold total,
+    xs muted caption below. Legend renders as a vertical list of chip
+    buttons (not a raw <ul>), each hoverable/dimmable in sync with the ring.
+
+  GROUPED BAR CHART (ui/GroupedBarChart.jsx)
+    Horizontal bars, track bg-stone-100 dark:bg-stone-800, fill uses the
+    series' own color, animates width in via requestAnimationFrame.
+    Legend (if present) is a simple row of dot+label pairs above the chart.
+
+  HEATMAP CALENDAR (ui/HeatmapCalendar.jsx)
+    GitHub-contribution-style grid. Five-step intensity scale, fixed
+    (not palette-cycled — this is the one place a dedicated scale exists):
+      level 0: fill-stone-100 dark:fill-stone-700
+      level 1: fill-emerald-300 dark:fill-emerald-800
+      level 2: fill-emerald-500 dark:fill-emerald-600
+      level 3: fill-emerald-700 dark:fill-emerald-400
+      level 4: fill-emerald-900 dark:fill-emerald-200
+    SVG uses viewBox + width="100%" (never a fixed pixel width) so it
+    reflows with its container.
+
+  TOOLTIP (ui/ChartTooltip.jsx — shared by all three chart types above)
+    Floating label that follows the cursor: absolute, positioned via
+    inline `style={{ left, top }}` computed from the container's
+    getBoundingClientRect(), never CSS :hover — charts need JS-tracked
+    tooltips because the hoverable shapes are SVG paths, not DOM boxes.
+    bg-stone-900 text-white (dark: bg-stone-100 text-stone-900),
+    rounded-md px-2.5 py-1.5 text-xs shadow-lg, small triangle pointer
+    via a rotated border trick, `pointer-events-none` so it never steals
+    the mouse event it's displaying.
+
+
+10. MODALS
+--------------------------------------------------------------------------------
+  Backdrop: fixed inset-0 z-50 flex items-center justify-center
+  bg-stone-900/50 p-4 — click on the backdrop closes, click inside the
+  panel calls e.stopPropagation() so it doesn't bubble to the backdrop.
+
+  Panel: max-h-[90vh] w-full max-w-2xl (size to content) overflow-y-auto
+  rounded-xl border border-stone-200 bg-cream shadow-2xl
+  dark:border-stone-800 dark:bg-stone-900
+
+  Entrance/exit motion (mandatory, not optional): mount with opacity-0
+  scale-95 translate-y-2, flip a `visible` boolean true one frame after
+  mount (requestAnimationFrame), transition-all duration-150. On close,
+  flip `visible` back to false and delay the actual unmount/onClose
+  callback by ~150ms with setTimeout so the exit animation plays instead
+  of snapping shut.
+
+  Header: flex items-start gap-4 border-b border-stone-100 p-5
+  dark:border-stone-800, with a close button (X icon, size 18) as an
+  icon-only button pinned to the row's end — see §6 icon button pattern.
+
+  Escape key must close the modal (`document.addEventListener('keydown', ...)`
+  checking `e.key === 'Escape'`), cleaned up on unmount.
+
+
+11. MOTION & TRANSITIONS
+--------------------------------------------------------------------------------
+Motion is used sparingly and always has a functional reason — never
+decorative bouncing. Rules:
+  - Color/background/border changes: `transition-colors` only.
+  - Hover lifts on cards: `transition-all hover:-translate-y-0.5
+    hover:shadow-md`, duration left at Tailwind's default (150ms) unless
+    otherwise noted.
+  - Anything animating in on mount (charts drawing, modals appearing,
+    heatmap fading in) uses a `visible`/`animated` boolean state flipped
+    via `requestAnimationFrame` in a `useEffect`, NOT a CSS animation
+    class or autoplay — this guarantees the "from" state actually paints
+    before the "to" state applies, avoiding a flash-of-final-state bug.
+  - Explicit durations used elsewhere: duration-150 (modals, small UI),
+    duration-200 (toggle thumb), duration-500 (heatmap fade),
+    duration-700 ease-out (bar/donut chart draw-in — deliberately the
+    slowest, since it's the "hero" motion of a chart appearing).
+  - Icon micro-interactions: e.g. the big CTA's plus icon rotates 90°
+    on button hover via `group` / `group-hover:rotate-90`.
+
+
+12. DARK MODE RULES
+--------------------------------------------------------------------------------
+Every component must work in both modes — dark mode is not an
+afterthought pass, it's written inline alongside the light-mode class on
+first draft. The mapping is consistent throughout the codebase:
+  bg-cream              -> dark:bg-stone-900   (card/page surfaces — light
+                           mode uses `cream` instead of pure `white`, see §1)
+  bg-stone-50            -> dark:bg-stone-900   (subtle fills)
+  border-stone-200       -> dark:border-stone-800
+  text-stone-900         -> dark:text-stone-100
+  text-stone-500         -> dark:text-stone-400
+  bg-brand-600            -> dark:bg-brand-500   (one step lighter — pure
+                             saturated brand-600 is too heavy on a dark bg)
+  bg-brand-50 / text-brand-700 (chips) -> dark:bg-brand-500/10 /
+                             dark:text-brand-400 (translucent fill instead
+                             of a flat light tint, since there's no dark
+                             equivalent of "50")
+
+NOTE — legacy `gray` usage: the authentication-adjacent components
+(LoginForm, SignupForm, OrderForm) were originally written against
+Tailwind's `gray` scale instead of `stone` before the rest of the app
+standardized on `stone`. Stone and gray render almost identically but are
+NOT the same token — mixing them means two nearby components can look
+subtly, distractingly different. Treat `gray-*` in those files as
+DEPRECATED: any new component, and any file you touch for other reasons,
+should use `stone-*`. When in doubt, `stone` is the correct choice for
+all new work in this codebase.
+
+
+13. ICONOGRAPHY
+--------------------------------------------------------------------------------
+Icon set: `lucide-react`, exclusively — never mix in a second icon library
+or inline SVGs for standard UI icons (charts' own SVG shapes are the only
+hand-drawn exception).
+
+  Sizing convention (by context, not by feel):
+    11-12px   micro icons inside badges/chips/fact-tile captions
+    13-14px   small inline icons next to text labels, section header icons
+    15-16px   toolbar buttons, table row action icons, form field icons
+    18px      modal close button
+    20-26px   header/hero icons inside a colored circle badge
+  strokeWidth: default (2) almost everywhere; use strokeWidth={2.75} or
+  {3} only for tiny icons (checkbox check/minus, big-CTA plus) where a
+  thicker stroke keeps them legible at small sizes.
+
+  Icon + circular backdrop pattern (headers, empty package placeholders):
+    flex h-9..h-11 w-9..w-11 items-center justify-center rounded-full
+    bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400
+
+
+14. ACCESSIBILITY BASELINE
+--------------------------------------------------------------------------------
+  - Every icon-only control has both `title` and `aria-label`.
+  - Custom controls that replace native ones (Checkbox, Toggle, Select)
+    use the correct ARIA role (`checkbox`, `switch`, `listbox`/`option`)
+    and `aria-checked` / `aria-expanded` / `aria-selected` — never a bare
+    `<div onClick>` standing in for a real control.
+  - All focusable custom buttons get a visible focus ring:
+    `focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+    focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950`.
+  - Forms use real `<label htmlFor>` bound to a matching input `id`,
+    never a floating `<p>` styled to look like a label.
+  - Escape closes modals/dropdowns; click-outside closes dropdowns.
+
+
+15. WRITING A NEW COMPONENT — CHECKLIST
+--------------------------------------------------------------------------------
+  [ ] Uses `stone` for neutrals, `brand` for anything interactive
+  [ ] Has a `dark:` counterpart for every color class
+  [ ] Border radius matches §4 (md for controls, lg for cards/panels,
+      xl for modals, full for pills/toggles/avatars)
+  [ ] Shadow tier matches §5 (sm resting card, md/lg hover or floating
+      menu, 2xl modal only)
+  [ ] Buttons match one of the five variants in §6 exactly — don't
+      invent a sixth
+  [ ] Any custom form control (dropdown, radio-replacement, etc.) follows
+      an existing ui/ primitive's pattern instead of a native element
+      styled with browser-default chrome
+  [ ] Loading/empty/error states use the exact banner styles in §8, not
+      ad hoc colors
+  [ ] Icons are lucide-react, sized per §13
+  [ ] Mobile-first responsive classes (`flex-col sm:flex-row`,
+      `w-full sm:w-auto`, `grid-cols-1 sm:grid-cols-2`)
+  [ ] Any entrance animation uses the requestAnimationFrame + boolean-state
+      pattern from §11, not a CSS-only animation
+  [ ] Accessibility baseline in §14 is met
+
+================================================================================
+ END OF FILE
+================================================================================

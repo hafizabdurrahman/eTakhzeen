@@ -27,7 +27,7 @@ function CheckAdmin({ children }) {
 
         const isAdmin = userData.labels?.includes('admin');
         if (!isAdmin) {
-            navigate(`/user/${userData['$id']}`, { replace: true });
+            navigate(`${userData['$id']}/profile`, { replace: true });
         }
     }, [authChecked, status, userData, navigate]);
 

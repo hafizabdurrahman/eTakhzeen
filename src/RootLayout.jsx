@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import { Outlet } from "react-router";
+import React, { useEffect, useState } from 'react';
+import { Outlet } from 'react-router';
 import { Provider, useDispatch } from 'react-redux';
-import { Header, Footer } from './components';
 import { ThemeProvider } from './context/theme';
-import store from './store/store'
+import store from './store/store';
 import auth from './backend/auth';
 import { login, logout } from './store/slices/userSlice';
-import { BlockedGuard, AnnouncementPopup } from './components';
+import { BlockedGuard } from './components';
 
-// Runs once, verifies the Appwrite session, and syncs Redux.
-// Rendered as a child of <Provider> so useDispatch has store access.
 function AuthBootstrap() {
     const dispatch = useDispatch();
 
@@ -35,15 +32,22 @@ function AuthBootstrap() {
     return null;
 }
 
-function Layout() {
+// Sits at the ROOT of the whole route tree — the one place Provider/
+// ThemeProvider/AuthBootstrap/BlockedGuard get mounted, so every route
+// (storefront, user panel, admin panel) gets Redux, theme, session
+// bootstrap, and the blocked-account check. This deliberately has NO
+// Header/Footer/main wrapper — that chrome now lives one level down, in
+// StorefrontLayout, so admin/user panels can skip it while still getting
+// everything here.
+function RootLayout() {
     const [themeMode, setThemeMode] = useState('dark');
 
     function toggleTheme() {
-        setThemeMode(prev => (prev === "dark" ? "light" : "dark"));
+        setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
     }
 
     useEffect(() => {
-        document.documentElement.classList.remove("dark", "light");
+        document.documentElement.classList.remove('dark', 'light');
         document.documentElement.classList.add(themeMode);
     }, [themeMode]);
 
@@ -51,15 +55,12 @@ function Layout() {
         <Provider store={store}>
             <ThemeProvider value={{ themeMode, toggleTheme }}>
                 <AuthBootstrap />
-                <Header />
-                    <BlockedGuard>
-                        <AnnouncementPopup />
-                        <Outlet />
-                    </BlockedGuard>
-                <Footer />
+                <BlockedGuard>
+                    <Outlet />
+                </BlockedGuard>
             </ThemeProvider>
         </Provider>
-    )
+    );
 }
 
-export default Layout
+export default RootLayout;

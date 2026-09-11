@@ -1,8 +1,12 @@
 // ---- Core / static pages ----
 export { default as Home } from './Home';
-export { default as Contact } from './Contact';
 export { default as Error } from './Error';
 export { default as Blocked } from './Blocked';
+
+// ---- Contact ----
+export { default as Contact } from './Contact';
+export { default as ContactEmptyState } from './ContactEmptyState';
+export { default as ContactThread } from './ContactThread';
 
 // ---- Auth ----
 export { default as Login } from './Login';

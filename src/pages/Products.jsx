@@ -7,7 +7,7 @@ import {
     setPage,
     resetFilters,
 } from '../store/slices/productSlice'; // ⚠️ adjust path
-
+import { Search } from "lucide-react"
 import { ProductCard, Pagination, FilterSidebar, CategoryPreview, GroupPreview } from "../components"
 
 function Products() {
@@ -60,24 +60,30 @@ function Products() {
     );
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-xl font-semibold">Products</h1>
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="mb-5 flex items-center justify-between gap-4">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Products</h1>
                 <button
                     onClick={() => setSidebarOpen(true)}
-                    className="text-sm border border-neutral-800 rounded-md px-3 py-1.5 hover:border-neutral-600"
+                    className="rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-900 transition-colors hover:border-brand-600 dark:border-gray-800 dark:text-gray-100 dark:hover:border-brand-500"
                 >
                     Filters
                 </button>
             </div>
 
-            <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by name or description..."
-                className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm mb-6"
-            />
+            <div className="relative mb-6">
+                <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500"
+                />
+                <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Search by name or description..."
+                    className="w-full rounded-md border border-stone-200 bg-cream py-2 pl-9 pr-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
+                />
+            </div>
 
             <FilterSidebar
                 isOpen={sidebarOpen}
@@ -89,11 +95,11 @@ function Products() {
                 <CategoryPreview />
 
                 <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-medium">
+                    <div className="mb-4 flex items-center justify-between gap-4">
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                             {hasActiveFilters ? 'Filtered products' : 'All products'}
                         </h2>
-                        <p className="text-neutral-400 text-sm">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             {catalog.status === 'loading'
                                 ? 'Loading...'
                                 : `${catalog.total} product${catalog.total === 1 ? '' : 's'}`}
@@ -101,10 +107,10 @@ function Products() {
                     </div>
 
                     {catalog.status === 'failed' && (
-                        <p className="text-red-400">Something went wrong loading products.</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">Something went wrong loading products.</p>
                     )}
                     {catalog.status === 'succeeded' && catalog.items.length === 0 && (
-                        <p className="text-neutral-400">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                             No products match{filters.searchTerm ? ` "${filters.searchTerm}"` : ' your current filters'}.
                         </p>
                     )}

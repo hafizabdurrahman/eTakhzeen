@@ -58,26 +58,27 @@ function AdminOrders() {
 
     return (
         <div>
-            <h1 className="text-xl font-semibold mb-4">Orders</h1>
+            <h1 className="mb-4 text-3xl font-bold text-stone-900 dark:text-stone-100">Orders</h1>
 
             <input
                 type="text"
                 value={term}
                 onChange={handleSearchChange}
                 placeholder="Search by name, email, username, address or product..."
-                className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm mb-4"
+                className="mb-4 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
             />
 
-            {status === 'loading' && <p className="text-neutral-400">Loading orders...</p>}
-            {status === 'failed' && <p className="text-red-400">{error}</p>}
+            {status === 'loading' && <p className="text-sm text-stone-500 dark:text-stone-400">Loading orders...</p>}
+            {status === 'failed' && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             {status === 'succeeded' && sortedItems.length === 0 && (
-                <p className="text-neutral-400">No orders to show.</p>
+                <p className="text-sm text-stone-500 dark:text-stone-400">No orders to show.</p>
             )}
 
             {status === 'succeeded' && sortedItems.length > 0 && (
-                <table className="w-full text-sm text-left">
-                    <thead className="text-neutral-400 border-b border-neutral-800">
+                <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                <table className="w-full min-w-[52rem] text-left text-sm">
+                    <thead className="border-b border-stone-200 text-stone-500 dark:border-stone-800 dark:text-stone-400">
                         <tr>
                             <th className="py-2 pr-4">Status</th>
                             <th className="py-2 pr-4">Recipient</th>
@@ -93,7 +94,7 @@ function AdminOrders() {
                             <tr
                                 key={order['$id']}
                                 onClick={() => navigate(`/admin/orders/${order['$id']}`)}
-                                className="border-b border-neutral-900 cursor-pointer hover:bg-neutral-900"
+                                className="cursor-pointer border-b border-stone-100 transition-colors hover:bg-stone-50 dark:border-stone-800/60 dark:hover:bg-stone-800"
                             >
                                 <td className="py-2 pr-4"><StatusBadge status={order.status} /></td>
                                 <td className="py-2 pr-4">{order.name}</td>
@@ -106,6 +107,7 @@ function AdminOrders() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             )}
         </div>
     );
@@ -113,13 +115,13 @@ function AdminOrders() {
 
 function StatusBadge({ status }) {
     const colors = {
-        Pending: 'text-yellow-400',
-        Processing: 'text-blue-400',
-        Delivered: 'text-green-400',
-        Returned: 'text-orange-400',
-        Cancelled: 'text-red-400',
+        Pending: 'bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+        Processing: 'bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-500',
+        Delivered: 'bg-green-50 text-green-700 dark:bg-green-500/20 dark:text-green-400',
+        Returned: 'bg-orange-50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
+        Cancelled: 'bg-red-50 text-red-700 dark:bg-red-500/20 dark:text-red-400',
     };
-    return <span className={colors[status] || 'text-neutral-400'}>{status}</span>;
+    return <span className={`rounded-full px-2 py-1 text-xs font-semibold ${colors[status] || 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'}`}>{status}</span>;
 }
 
 export default AdminOrders;

@@ -30,7 +30,7 @@ function CheckUser({ children }) {
         }
 
         if (username !== userData['$id']) {
-            navigate(`/user/${userData['$id']}`, { replace: true });
+            navigate(`/${userData['$id']}/profile`, { replace: true });
         }
     }, [authChecked, status, userData, username, navigate]);
 

@@ -1,5 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { productsReducer, userReducer, cartReducer, contactReducer, ordersReducer, announcementsReducer } from "./slices";
+import {
+    productsReducer,
+    userReducer,
+    cartReducer,
+    contactReducer,
+    ordersReducer,
+    announcementsReducer,
+    conversationsReducer,
+    messagesReducer,
+    faqReducer,
+    reviewsReducer,
+    returnReducer
+} from "./slices";
 
 const store = configureStore({
     reducer: {
@@ -8,7 +20,12 @@ const store = configureStore({
         cart: cartReducer,
         contact: contactReducer,
         orders: ordersReducer,
-        announcements: announcementsReducer
+        announcements: announcementsReducer,
+        conversations: conversationsReducer,
+        messages: messagesReducer,
+        faq: faqReducer,
+        reviews: reviewsReducer,
+        returns: returnReducer,
     }
 });
 

@@ -3,7 +3,9 @@ import { LoginForm } from '../components'
 
 function Login() {
   return (
-    <LoginForm />
+    <main className="mx-auto max-w-md px-4 py-12 sm:px-6">
+      <LoginForm />
+    </main>
   )
 }
 

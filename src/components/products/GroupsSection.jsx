@@ -1,47 +1,46 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCatalogGroups } from '../../store/slices/productSlice'; // ⚠️ adjust path to match where productSlice.js actually lives
+import { Link } from 'react-router';
+import { ArrowRight } from 'lucide-react';
+import { fetchCatalogGroups } from '../../store/slices/productSlice'; // ⚠️ adjust path
 import { GroupTile } from '../.';
 
-const PREVIEW_LIMIT = 4;
-
-// Same idea one level down — only rendered by Products.jsx once a category
-// is selected. Re-fetches whenever categoryName changes.
 function GroupsSection({ categoryName, selectedGroup, onSelect }) {
     const dispatch = useDispatch();
     const groups = useSelector((s) => s.products.catalogGroups);
-    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
-        setShowAll(false);
         dispatch(fetchCatalogGroups({ category: categoryName }));
     }, [dispatch, categoryName]);
 
     if (groups.status === 'loading') {
-        return <p className="text-neutral-400">Loading groups...</p>;
+        return <p className="text-sm text-stone-500 dark:text-stone-400">Loading groups...</p>;
     }
     if (groups.status === 'failed') {
-        return <p className="text-red-400">Failed to load groups.</p>;
+        return <p className="text-sm text-red-600 dark:text-red-400">Failed to load groups.</p>;
     }
     if (groups.status === 'succeeded' && groups.items.length === 0) {
-        return <p className="text-neutral-400 mb-6">No groups in this category yet.</p>;
+        return <p className="mb-6 text-sm text-stone-500 dark:text-stone-400">No groups in this category yet.</p>;
     }
-
-    const visible = showAll ? groups.items : groups.items.slice(0, PREVIEW_LIMIT);
-    const hasMore = groups.items.length > PREVIEW_LIMIT;
 
     return (
         <section className="mb-6">
-            <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-medium">Groups in {categoryName}</h2>
+            <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-100">Groups in {categoryName}</h2>
                 {selectedGroup && (
-                    <button onClick={() => onSelect(null)} className="text-sm text-neutral-400 hover:underline">
+                    <button
+                        type="button"
+                        onClick={() => onSelect(null)}
+                        className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+                    >
                         Clear group
                     </button>
                 )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {visible.map((g) => (
+
+            {/* single-row, horizontally scrolling strip of small cards — never wraps */}
+            <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+                {groups.items.map((g) => (
                     <GroupTile
                         key={g.name}
                         name={g.name}
@@ -51,12 +50,16 @@ function GroupsSection({ categoryName, selectedGroup, onSelect }) {
                         onSelect={() => onSelect(g.name === selectedGroup ? null : g.name)}
                     />
                 ))}
+
+                <Link
+                    to={`/products/category/${encodeURIComponent(categoryName)}/groups`}
+                    className="group flex w-24 shrink-0 flex-col items-center justify-center rounded-lg border border-dashed border-stone-300 bg-stone-50 p-1.5 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:border-stone-700 dark:bg-stone-800/50 dark:hover:border-brand-500 dark:hover:bg-brand-500/5 dark:focus-visible:ring-offset-stone-950"
+                    style={{ minHeight: '5.75rem' }}
+                >
+                    <ArrowRight size={16} className="text-stone-500 group-hover:text-brand-600 dark:text-stone-400 dark:group-hover:text-brand-400" />
+                    <p className="mt-1 text-xs font-medium text-stone-700 dark:text-stone-300">View all</p>
+                </Link>
             </div>
-            {hasMore && (
-                <button onClick={() => setShowAll((v) => !v)} className="mt-3 text-sm text-neutral-400 hover:underline">
-                    {showAll ? 'Show less' : `Show all ${groups.items.length} groups`}
-                </button>
-            )}
         </section>
     );
 }

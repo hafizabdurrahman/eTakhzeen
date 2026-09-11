@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilter } from '../../store/slices/productSlice'; // ⚠️ adjust path
+import { SlidersHorizontal, Tag } from 'lucide-react';
+import { Select, Toggle } from '../../ui';
+
+const SORT_OPTIONS = [
+    { value: 'name-asc', label: 'Name (A–Z)' },
+    { value: 'name-desc', label: 'Name (Z–A)' },
+    { value: 'price-asc', label: 'Price: low to high' },
+    { value: 'price-desc', label: 'Price: high to low' },
+    { value: 'newest', label: 'Newest arrivals' },
+];
 
 function ProductFilters({ onClear }) {
     const dispatch = useDispatch();
@@ -19,16 +29,30 @@ function ProductFilters({ onClear }) {
         const handle = setTimeout(() => {
             const min = minInput === '' ? null : Number(minInput);
             const max = maxInput === '' ? null : Number(maxInput);
-            dispatch(setFilter({ minPrice: min, maxPrice: max }));
+            if (min !== filters.minPrice || max !== filters.maxPrice) {
+                dispatch(setFilter({ minPrice: min, maxPrice: max }));
+            }
         }, 500);
         return () => clearTimeout(handle);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [minInput, maxInput, dispatch]);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
+            <div className="flex items-center gap-2 text-stone-900 dark:text-stone-100">
+                <SlidersHorizontal size={16} />
+                <h3 className="text-sm font-semibold">Refine results</h3>
+            </div>
+
             <div>
-                <label className="block text-xs text-neutral-500 mb-1">
-                    Price {priceBounds.max > 0 && `(${priceBounds.min} – ${priceBounds.max})`}
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-stone-900 dark:text-stone-100">
+                    <Tag size={13} className="text-stone-400 dark:text-stone-500" />
+                    Price range
+                    {priceBounds.max > 0 && (
+                        <span className="font-normal text-stone-500 dark:text-stone-400">
+                            ({priceBounds.min} – {priceBounds.max})
+                        </span>
+                    )}
                 </label>
                 <div className="flex items-center gap-2">
                     <input
@@ -37,51 +61,45 @@ function ProductFilters({ onClear }) {
                         value={minInput}
                         onChange={(e) => setMinInput(e.target.value)}
                         placeholder="Min"
-                        className="w-1/2 rounded-md bg-neutral-900 border border-neutral-800 px-2 py-1.5 text-sm"
+                        className="w-1/2 rounded-md border border-stone-200 bg-cream px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                     />
-                    <span className="text-neutral-600">–</span>
+                    <span className="text-stone-400 dark:text-stone-500">–</span>
                     <input
                         type="number"
                         min="0"
                         value={maxInput}
                         onChange={(e) => setMaxInput(e.target.value)}
                         placeholder="Max"
-                        className="w-1/2 rounded-md bg-neutral-900 border border-neutral-800 px-2 py-1.5 text-sm"
+                        className="w-1/2 rounded-md border border-stone-200 bg-cream px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                     />
                 </div>
             </div>
 
-            <div>
-                <label className="block text-xs text-neutral-500 mb-1">Availability</label>
-                <select
-                    value={filters.stockFilter}
-                    onChange={(e) => dispatch(setFilter({ stockFilter: e.target.value }))}
-                    className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2 py-1.5 text-sm"
-                >
-                    <option value="all">All</option>
-                    <option value="in">In stock</option>
-                    <option value="out">Out of stock</option>
-                </select>
+            <div className="flex items-center justify-between rounded-lg border border-stone-200 p-3 dark:border-stone-800">
+                <div>
+                    <p className="text-sm font-medium text-stone-900 dark:text-stone-100">In stock only</p>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">Hide sold-out products</p>
+                </div>
+                <Toggle
+                    checked={filters.stockFilter === 'in'}
+                    onChange={(checked) => dispatch(setFilter({ stockFilter: checked ? 'in' : 'all' }))}
+                    label="In stock only"
+                />
             </div>
 
             <div>
-                <label className="block text-xs text-neutral-500 mb-1">Sort by</label>
-                <select
+                <label className="mb-1.5 block text-sm font-medium text-stone-900 dark:text-stone-100">Sort by</label>
+                <Select
                     value={filters.sortBy}
-                    onChange={(e) => dispatch(setFilter({ sortBy: e.target.value }))}
-                    className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-2 py-1.5 text-sm"
-                >
-                    <option value="name-asc">Name (A–Z)</option>
-                    <option value="name-desc">Name (Z–A)</option>
-                    <option value="price-asc">Price (low to high)</option>
-                    <option value="price-desc">Price (high to low)</option>
-                    <option value="newest">Newest</option>
-                </select>
+                    onChange={(value) => dispatch(setFilter({ sortBy: value }))}
+                    options={SORT_OPTIONS}
+                    placeholder="Default"
+                />
             </div>
 
             <button
                 onClick={onClear}
-                className="w-full text-sm text-neutral-400 hover:underline text-center"
+                className="w-full rounded-md bg-stone-100 px-4 py-2 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-100 dark:hover:bg-stone-700"
             >
                 Clear all filters
             </button>

@@ -54,33 +54,33 @@ function AdminOrderDetail() {
         }
     }
 
-    if (status === 'loading' || status === 'idle') return <p className="text-neutral-400">Loading order...</p>;
-    if (status === 'failed') return <p className="text-red-400">{error}</p>;
-    if (!order || !form) return <p className="text-neutral-400">Order not found.</p>;
+    if (status === 'loading' || status === 'idle') return <p className="text-sm text-stone-500 dark:text-stone-400">Loading order...</p>;
+    if (status === 'failed') return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>;
+    if (!order || !form) return <p className="text-sm text-stone-500 dark:text-stone-400">Order not found.</p>;
 
     return (
         <div className="max-w-xl">
-            <button onClick={() => navigate('/admin/orders')} className="text-sm text-neutral-400 hover:underline mb-4">
+            <button onClick={() => navigate('/admin/orders')} className="mb-4 text-sm text-stone-500 hover:text-brand-600 hover:underline dark:text-stone-400 dark:hover:text-brand-500">
                 ← Back to Orders
             </button>
 
-            <h1 className="text-xl font-semibold mb-1">Order #{order['$id']}</h1>
-            <p className="text-neutral-500 text-sm mb-4">Placed by {order.username}</p>
+            <h1 className="mb-1 text-3xl font-bold text-stone-900 dark:text-stone-100">Order #{order['$id']}</h1>
+            <p className="mb-4 text-sm text-stone-500 dark:text-stone-400">Placed by {order.username}</p>
 
-            {updateStatus === 'failed' && <p className="text-red-400 text-sm mb-2">{updateError}</p>}
+            {updateStatus === 'failed' && <p className="mb-2 text-sm text-red-600 dark:text-red-400">{updateError}</p>}
 
-            <div className="space-y-3 border border-neutral-800 rounded-lg p-4 mb-4">
+            <div className="mb-4 space-y-3 rounded-lg border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
                 <Field label="Recipient Name" value={form.name} onChange={(v) => handleFieldChange('name', v)} />
                 <Field label="Email" value={form.email} onChange={(v) => handleFieldChange('email', v)} />
                 <Field label="Phone" value={form.phone} onChange={(v) => handleFieldChange('phone', v)} />
                 <Field label="Address" value={form.address} onChange={(v) => handleFieldChange('address', v)} textarea />
 
                 <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Payment Method</label>
+                    <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Payment Method</label>
                     <select
                         value={form.paymentMethod}
                         onChange={(e) => handleFieldChange('paymentMethod', e.target.value)}
-                        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                        className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                     >
                         <option value="Advance">Advance</option>
                         <option value="COD">COD</option>
@@ -88,11 +88,11 @@ function AdminOrderDetail() {
                 </div>
 
                 <div>
-                    <label className="block text-sm text-neutral-400 mb-1">Status</label>
+                    <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">Status</label>
                     <select
                         value={form.status}
                         onChange={(e) => handleFieldChange('status', e.target.value)}
-                        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                        className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
                     >
                         {ORDER_STATUSES.map((s) => (
                             <option key={s} value={s}>{s}</option>
@@ -102,29 +102,29 @@ function AdminOrderDetail() {
             </div>
 
             <div>
-                <h2 className="text-sm text-neutral-400 mb-2">Items</h2>
-                <ul className="space-y-1 mb-4">
+                <h2 className="mb-2 text-sm font-semibold text-stone-900 dark:text-stone-100">Items</h2>
+                <ul className="mb-4 space-y-1 rounded-lg border border-stone-200 bg-white p-3 dark:border-stone-800 dark:bg-stone-900">
                     {order.orderDetails.map((item, i) => (
-                        <li key={item.productId || i} className="text-sm">
+                        <li key={item.productId || i} className="text-sm text-stone-900 dark:text-stone-100">
                             {item.name} — Qty {item.quantity} — Rs. {item.price}
                         </li>
                     ))}
                 </ul>
-                <p className="text-sm font-medium">Total: Rs. {order.total}</p>
+                <p className="text-sm font-bold text-stone-900 dark:text-stone-100">Total: Rs. {order.total}</p>
             </div>
 
             <div className="flex gap-2 mt-4">
                 <button
                     onClick={handleSave}
                     disabled={updateStatus === 'loading'}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                 >
                     {updateStatus === 'loading' ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button
                     onClick={handleDelete}
                     disabled={deleteStatus === 'loading'}
-                    className="rounded-md bg-red-700 px-4 py-2 text-sm font-medium disabled:opacity-50"
+                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-600"
                 >
                     {deleteStatus === 'loading' ? 'Deleting...' : 'Delete Order'}
                 </button>
@@ -137,12 +137,12 @@ function Field({ label, value, onChange, textarea }) {
     const Comp = textarea ? 'textarea' : 'input';
     return (
         <div>
-            <label className="block text-sm text-neutral-400 mb-1">{label}</label>
+            <label className="mb-1 block text-sm font-medium text-stone-900 dark:text-stone-100">{label}</label>
             <Comp
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 rows={textarea ? 2 : undefined}
-                className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
             />
         </div>
     );

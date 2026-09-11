@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Bold, Italic, Underline, List, Link as LinkIcon, Image as ImageIcon, Eraser } from 'lucide-react';
 import announcementService from '../../backend/announcement'; // ⚠️ adjust path
 
 // Controlled-ish contentEditable: `value` is the source of truth on mount
@@ -47,18 +48,23 @@ function RichTextEditor({ value, onChange }) {
     }
 
     return (
-        <div className="border border-neutral-800 rounded-md overflow-hidden">
-            <div className="flex flex-wrap gap-1 border-b border-neutral-800 bg-neutral-900 p-1">
-                <ToolbarButton label="B" onClick={() => exec('bold')} title="Bold" />
-                <ToolbarButton label="I" onClick={() => exec('italic')} title="Italic" />
-                <ToolbarButton label="U" onClick={() => exec('underline')} title="Underline" />
-                <ToolbarButton label="• List" onClick={() => exec('insertUnorderedList')} title="Bullet list" />
-                <ToolbarButton label="Link" onClick={handleInsertLink} title="Insert link" />
-                <label className="cursor-pointer rounded px-2 py-1 text-xs hover:bg-neutral-800" title="Insert image">
-                    Image
+        <div className="overflow-hidden rounded-md border border-stone-200 shadow-sm dark:border-stone-800">
+            <div className="flex flex-wrap items-center gap-0.5 border-b border-stone-200 bg-stone-50 p-1.5 dark:border-stone-800 dark:bg-stone-900">
+                <ToolbarButton icon={Bold} onClick={() => exec('bold')} title="Bold" />
+                <ToolbarButton icon={Italic} onClick={() => exec('italic')} title="Italic" />
+                <ToolbarButton icon={Underline} onClick={() => exec('underline')} title="Underline" />
+                <div className="mx-1 h-5 w-px bg-stone-200 dark:bg-stone-700" />
+                <ToolbarButton icon={List} onClick={() => exec('insertUnorderedList')} title="Bullet list" />
+                <ToolbarButton icon={LinkIcon} onClick={handleInsertLink} title="Insert link" />
+                <label
+                    title="Insert image"
+                    className="flex cursor-pointer items-center justify-center rounded-md p-1.5 text-stone-500 transition-colors hover:bg-stone-200/60 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
+                >
+                    <ImageIcon size={15} />
                     <input type="file" accept="image/*" onChange={handleInsertImage} className="hidden" />
                 </label>
-                <ToolbarButton label="Clear" onClick={() => exec('removeFormat')} title="Clear formatting" />
+                <div className="mx-1 h-5 w-px bg-stone-200 dark:bg-stone-700" />
+                <ToolbarButton icon={Eraser} onClick={() => exec('removeFormat')} title="Clear formatting" />
             </div>
 
             <div
@@ -66,22 +72,23 @@ function RichTextEditor({ value, onChange }) {
                 contentEditable
                 onInput={emitChange}
                 onBlur={emitChange}
-                className="min-h-[160px] px-3 py-2 text-sm focus:outline-none prose prose-invert max-w-none"
+                className="min-h-40 max-w-none bg-white px-3 py-2 text-sm text-stone-900 focus:outline-none dark:bg-stone-950 dark:text-stone-100"
                 suppressContentEditableWarning
             />
         </div>
     );
 }
 
-function ToolbarButton({ label, onClick, title }) {
+function ToolbarButton({ icon: Icon, onClick, title }) {
     return (
         <button
             type="button"
             onClick={onClick}
             title={title}
-            className="rounded px-2 py-1 text-xs hover:bg-neutral-800"
+            aria-label={title}
+            className="flex items-center justify-center rounded-md p-1.5 text-stone-500 transition-colors hover:bg-stone-200/60 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-stone-100"
         >
-            {label}
+            <Icon size={15} />
         </button>
     );
 }

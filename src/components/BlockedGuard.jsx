@@ -18,7 +18,7 @@ function BlockedGuard({ children }) {
     useEffect(() => {
         if (!authChecked || !status || !userData?.blocked) return;
 
-        const ownProfilePath = `/user/${userData['$id']}`;
+        const ownProfilePath = `/${userData['$id']}/profile`;
         const allowedPaths = [ownProfilePath, '/blocked'];
 
         if (!allowedPaths.includes(location.pathname)) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router';
+import { User, MapPin, Truck, Wallet, Check, AlertCircle, ShoppingBag } from 'lucide-react';
 import authService from '../../backend/auth'; // ⚠️ adjust path
 import userService from '../../backend/user'; // ⚠️ adjust path
 import orderService from '../../backend/order'; // ⚠️ adjust path
@@ -10,9 +11,12 @@ import { clearCart, removeFromCart } from '../../store/slices/cartSlice'; // ⚠
 import { formatPKR } from '../../utils/formatPrice'; // ⚠️ adjust path
 
 const PAYMENT_METHODS = [
-    { value: 'COD', label: 'Cash on Delivery' },
-    { value: 'Advance', label: 'Advance Payment' },
+    { value: 'COD', label: 'Cash on Delivery', description: 'Pay when your order arrives', icon: Truck },
+    { value: 'Advance', label: 'Advance Payment', description: 'Pay online ahead of delivery', icon: Wallet },
 ];
+
+const inputClass =
+    'w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20';
 
 // Reached via navigate('/checkout', { state: { items, mode } }) from either
 // Product.jsx ("Order Now" — mode: 'single') or Cart.jsx ("Checkout" —
@@ -61,9 +65,9 @@ function OrderForm() {
 
     if (!items || items.length === 0) {
         return (
-            <div>
-                <p className="text-neutral-400 mb-3">No items selected for checkout.</p>
-                <Link to="/cart" className="text-blue-400 hover:underline text-sm">Go to your cart</Link>
+            <div className="mx-auto max-w-3xl px-4 py-12">
+                <p className="mb-3 text-stone-500 dark:text-stone-400">No items selected for checkout.</p>
+                <Link to="/cart" className="text-sm text-brand-600 hover:underline dark:text-brand-500">Go to your cart</Link>
             </div>
         );
     }
@@ -179,111 +183,166 @@ function OrderForm() {
     }
 
     return (
-        <div className="max-w-2xl">
-            <h1 className="text-xl font-semibold mb-4">Checkout</h1>
-
-            <div className="mb-6 border border-neutral-800 rounded-md p-3">
-                <h2 className="text-sm font-medium text-neutral-400 mb-2">Order summary</h2>
-                <div className="space-y-2">
-                    {items.map((i) => (
-                        <div key={i.product['$id']} className="flex items-center gap-3">
-                            {i.product.fileId ? (
-                                <img
-                                    src={service.getImagePreview({ fileId: i.product.fileId })}
-                                    alt={i.product.name}
-                                    className="w-12 h-12 object-cover rounded"
-                                />
-                            ) : (
-                                <div className="w-12 h-12 rounded bg-neutral-800" />
-                            )}
-                            <div className="flex-1">
-                                <p className="text-sm">{i.product.name}</p>
-                                <p className="text-neutral-500 text-xs">
-                                    {formatPKR(i.product.price)} × {i.quantity}
-                                </p>
-                            </div>
-                            <p className="text-sm">{formatPKR(Number(i.product.price) * i.quantity)}</p>
-                        </div>
-                    ))}
-                </div>
-                <div className="flex justify-between border-t border-neutral-800 mt-3 pt-2">
-                    <span className="text-sm font-medium">Total</span>
-                    <span className="text-sm font-medium">{formatPKR(total)}</span>
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+            <div className="mb-6 flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
+                    <ShoppingBag size={18} />
+                </span>
+                <div>
+                    <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 sm:text-3xl">Checkout</h1>
+                    <p className="text-sm text-stone-500 dark:text-stone-400">Review your order and complete your details below.</p>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {!isLoggedIn && (
-                    <div>
-                        <h2 className="text-sm font-medium text-neutral-400 mb-2">Your account</h2>
-                        <p className="text-xs text-neutral-500 mb-3">
-                            Already have an account? Enter the same email and password and we'll log you in.
-                            Otherwise, we'll create one for you automatically.
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input name="username" placeholder="Username" value={authFields.username} onChange={handleAuthChange}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input name="name" placeholder="Full name" value={authFields.name} onChange={handleAuthChange}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input name="email" type="email" placeholder="Email" value={authFields.email} onChange={handleAuthChange}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input name="phone" placeholder="Phone" value={authFields.phone} onChange={handleAuthChange}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input name="password" type="password" placeholder="Password" value={authFields.password} onChange={handleAuthChange}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm sm:col-span-2" />
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                {/* Order summary — sticky on desktop so it stays visible while filling the form */}
+                <div className="order-1 lg:order-2 lg:col-span-2">
+                    <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900 lg:sticky lg:top-6">
+                        <h2 className="mb-4 text-sm font-semibold text-stone-900 dark:text-stone-100">Order summary</h2>
+                        <div className="space-y-3">
+                            {items.map((i) => (
+                                <div key={i.product['$id']} className="flex items-center gap-3">
+                                    {i.product.fileId ? (
+                                        <img
+                                            src={service.getImagePreview({ fileId: i.product.fileId })}
+                                            alt={i.product.name}
+                                            className="h-12 w-12 rounded-md object-cover ring-1 ring-stone-200 dark:ring-stone-700"
+                                        />
+                                    ) : (
+                                        <div className="h-12 w-12 rounded-md bg-stone-100 dark:bg-stone-800" />
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium text-stone-900 dark:text-stone-100">{i.product.name}</p>
+                                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                                            {formatPKR(i.product.price)} × {i.quantity}
+                                        </p>
+                                    </div>
+                                    <p className="shrink-0 text-sm font-semibold text-stone-900 dark:text-stone-100">
+                                        {formatPKR(Number(i.product.price) * i.quantity)}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                    </div>
-                )}
-
-                {isLoggedIn && (
-                    <div>
-                        <h2 className="text-sm font-medium text-neutral-400 mb-2">Contact details for this order</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                            <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-                                className="rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm sm:col-span-2" />
+                        <div className="mt-4 flex items-center justify-between border-t border-stone-200 pt-4 dark:border-stone-800">
+                            <span className="text-sm font-semibold text-stone-900 dark:text-stone-100">Total</span>
+                            <span className="text-lg font-bold text-brand-700 dark:text-brand-500">{formatPKR(total)}</span>
                         </div>
-                        <p className="text-xs text-neutral-500 mt-1">
-                            These are used for this order's receipt only — they won't change your saved account details.
-                        </p>
-                    </div>
-                )}
-
-                <div>
-                    <h2 className="text-sm font-medium text-neutral-400 mb-2">Delivery address</h2>
-                    <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={3}
-                        placeholder="Street, city, postal code..."
-                        className="w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm" />
-                </div>
-
-                <div>
-                    <h2 className="text-sm font-medium text-neutral-400 mb-2">Payment method</h2>
-                    <div className="flex gap-4">
-                        {PAYMENT_METHODS.map((pm) => (
-                            <label key={pm.value} className="flex items-center gap-2 text-sm">
-                                <input
-                                    type="radio"
-                                    name="paymentMethod"
-                                    value={pm.value}
-                                    checked={paymentMethod === pm.value}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                />
-                                {pm.label}
-                            </label>
-                        ))}
                     </div>
                 </div>
 
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="order-2 space-y-6 lg:order-1 lg:col-span-3">
+                    {!isLoggedIn && (
+                        <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                            <div className="mb-1 flex items-center gap-2">
+                                <User size={15} className="text-stone-400 dark:text-stone-500" />
+                                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Your account</h2>
+                            </div>
+                            <p className="mb-4 text-xs text-stone-500 dark:text-stone-400">
+                                Already have an account? Enter the same email and password and we'll log you in.
+                                Otherwise, we'll create one for you automatically. Or{' '}
+                                <Link to="/login" className="font-medium text-brand-600 hover:underline dark:text-brand-500">
+                                    log in first
+                                </Link>{' '}
+                                to skip this step.
+                            </p>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <input name="username" placeholder="Username" value={authFields.username} onChange={handleAuthChange} className={inputClass} />
+                                <input name="name" placeholder="Full name" value={authFields.name} onChange={handleAuthChange} className={inputClass} />
+                                <input name="email" type="email" placeholder="Email" value={authFields.email} onChange={handleAuthChange} className={inputClass} />
+                                <input name="phone" placeholder="Phone" value={authFields.phone} onChange={handleAuthChange} className={inputClass} />
+                                <input name="password" type="password" placeholder="Password" value={authFields.password} onChange={handleAuthChange} className={`${inputClass} sm:col-span-2`} />
+                            </div>
+                        </div>
+                    )}
 
-                <button type="submit" disabled={submitting}
-                    className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium disabled:opacity-50">
-                    {submitting ? 'Placing order...' : `Place order — ${formatPKR(total)}`}
-                </button>
-            </form>
+                    {isLoggedIn && (
+                        <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                            <div className="mb-1 flex items-center gap-2">
+                                <User size={15} className="text-stone-400 dark:text-stone-500" />
+                                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Contact details for this order</h2>
+                            </div>
+                            <p className="mb-4 text-xs text-stone-500 dark:text-stone-400">
+                                Used for this order's receipt only — they won't change your saved account details.
+                            </p>
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+                                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+                                <input placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} className={`${inputClass} sm:col-span-2`} />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                        <div className="mb-3 flex items-center gap-2">
+                            <MapPin size={15} className="text-stone-400 dark:text-stone-500" />
+                            <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">Delivery address</h2>
+                        </div>
+                        <textarea
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            rows={3}
+                            placeholder="Street, city, postal code..."
+                            className={inputClass}
+                        />
+                    </div>
+
+                    <div className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                        <h2 className="mb-3 text-sm font-semibold text-stone-900 dark:text-stone-100">Payment method</h2>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {PAYMENT_METHODS.map((pm) => {
+                                const Icon = pm.icon;
+                                const active = paymentMethod === pm.value;
+                                return (
+                                    <button
+                                        key={pm.value}
+                                        type="button"
+                                        onClick={() => setPaymentMethod(pm.value)}
+                                        className={`relative flex items-start gap-3 rounded-lg border p-4 text-left transition-colors ${
+                                            active
+                                                ? 'border-brand-600 bg-brand-50 dark:border-brand-500 dark:bg-brand-500/10'
+                                                : 'border-stone-200 hover:border-stone-300 dark:border-stone-800 dark:hover:border-stone-700'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                                                active
+                                                    ? 'bg-brand-600 text-white dark:bg-brand-500'
+                                                    : 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'
+                                            }`}
+                                        >
+                                            <Icon size={16} />
+                                        </span>
+                                        <span>
+                                            <span className="block text-sm font-medium text-stone-900 dark:text-stone-100">{pm.label}</span>
+                                            <span className="block text-xs text-stone-500 dark:text-stone-400">{pm.description}</span>
+                                        </span>
+                                        {active && (
+                                            <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white dark:bg-brand-500">
+                                                <Check size={12} strokeWidth={3} />
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {error && (
+                        <p className="flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                            <AlertCircle size={14} className="shrink-0" /> {error}
+                        </p>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full rounded-md bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                    >
+                        {submitting ? 'Placing order...' : `Place order — ${formatPKR(total)}`}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }

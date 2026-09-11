@@ -1,35 +1,42 @@
 import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Numbered pagination with prev/next and condensed page numbers
-// (first, last, current ±1, with ellipses for large page counts).
+// Always rendered under the catalog grid — including when there's only
+// one page or zero results — so the layout doesn't jump as result counts
+// change. In that case every control is simply disabled rather than the
+// component disappearing.
 function Pagination({ page, pageSize, total, onPageChange }) {
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    if (totalPages <= 1) return null;
-
+    const inactive = totalPages <= 1;
     const pages = getPageNumbers(page, totalPages);
 
     return (
-        <div className="flex items-center justify-center gap-1 mt-6">
+        <div className="mt-8 flex items-center justify-center gap-1.5">
             <button
                 onClick={() => onPageChange(page - 1)}
-                disabled={page <= 1}
-                className="px-3 py-1.5 text-sm rounded-md border border-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed hover:border-neutral-600"
+                disabled={inactive || page <= 1}
+                title="Previous page"
+                aria-label="Previous page"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-stone-200 text-stone-600 transition-colors hover:border-brand-600 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-200 disabled:hover:text-stone-600 dark:border-stone-800 dark:text-stone-400 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:disabled:hover:border-stone-800 dark:disabled:hover:text-stone-400"
             >
-                Prev
+                <ChevronLeft size={16} />
             </button>
 
             {pages.map((p, i) =>
                 p === '...' ? (
-                    <span key={`ellipsis-${i}`} className="px-2 text-neutral-500">...</span>
+                    <span key={`ellipsis-${i}`} className="px-1.5 text-sm text-stone-400 dark:text-stone-500">
+                        …
+                    </span>
                 ) : (
                     <button
                         key={p}
                         onClick={() => onPageChange(p)}
-                        className={`px-3 py-1.5 text-sm rounded-md border ${
-                            p === page
-                                ? 'border-neutral-400 bg-neutral-800'
-                                : 'border-neutral-800 hover:border-neutral-600'
-                        }`}
+                        disabled={inactive}
+                        className={`flex h-9 min-w-9 items-center justify-center rounded-md border px-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed ${
+                            p === page && !inactive
+                                ? 'border-brand-600 bg-brand-600 text-white dark:border-brand-500 dark:bg-brand-500'
+                                : 'border-stone-200 text-stone-700 hover:border-brand-600 hover:text-brand-700 dark:border-stone-800 dark:text-stone-300 dark:hover:border-brand-500 dark:hover:text-brand-400'
+                        } ${inactive ? 'opacity-40' : ''}`}
                     >
                         {p}
                     </button>
@@ -38,10 +45,12 @@ function Pagination({ page, pageSize, total, onPageChange }) {
 
             <button
                 onClick={() => onPageChange(page + 1)}
-                disabled={page >= totalPages}
-                className="px-3 py-1.5 text-sm rounded-md border border-neutral-800 disabled:opacity-40 disabled:cursor-not-allowed hover:border-neutral-600"
+                disabled={inactive || page >= totalPages}
+                title="Next page"
+                aria-label="Next page"
+                className="flex h-9 w-9 items-center justify-center rounded-md border border-stone-200 text-stone-600 transition-colors hover:border-brand-600 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-stone-200 disabled:hover:text-stone-600 dark:border-stone-800 dark:text-stone-400 dark:hover:border-brand-500 dark:hover:text-brand-400 dark:disabled:hover:border-stone-800 dark:disabled:hover:text-stone-400"
             >
-                Next
+                <ChevronRight size={16} />
             </button>
         </div>
     );
