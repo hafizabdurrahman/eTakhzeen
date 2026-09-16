@@ -8,9 +8,7 @@ import { Input, Button } from "../.";
 import { user } from "../../backend";
 import { login, setUser } from "../../store/slices/userSlice";
 
-// Swap this for your real asset path/URL whenever it's ready — the
-// fallback below means nothing breaks in the meantime.
-const SIGNUP_IMAGE_SRC = "/images/signup-hero.jpg";
+const SIGNUP_IMAGE_SRC = "/images/forms/loginForm.webp";
 
 export default function SignupForm() {
   const navigate = useNavigate();
@@ -31,23 +29,16 @@ export default function SignupForm() {
 
   const password = watch("password");
 
-  // One DB call on mount (unless already cached in store) to fetch every
-  // existing username/email/phone, so every keystroke afterward checks
-  // in-memory data — zero network calls while typing.
   useEffect(() => {
     if (allCols) {
       setColsLoading(false);
       return;
     }
-
     let cancelled = false;
-
     (async () => {
       try {
         setColsLoading(true);
-        const cols = await user.getCols({
-          properties: ["username", "email", "phone"],
-        });
+        const cols = await user.getCols({ properties: ["username", "email", "phone"] });
         if (!cancelled) dispatch(setUser(cols));
       } catch (err) {
         if (!cancelled) {
@@ -58,10 +49,7 @@ export default function SignupForm() {
         if (!cancelled) setColsLoading(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [allCols, dispatch]);
 
   function validateUnique(field, value) {
@@ -82,26 +70,19 @@ export default function SignupForm() {
         phone: data.phone,
       });
 
-      // auth.signup() already logged the session in; fetch the real
-      // Appwrite user object (has $id, labels, etc.) to store — never
-      // dispatch raw form data as if it were the account object.
       const userData = await auth.getCurrentUser();
       if (!userData || userData === "User not found") {
         setSubmitError("Account created, but we couldn't load your profile. Please log in.");
-        navigate("/login", { state: { email: data.email } });
+        navigate("/welcome-back", { state: { email: data.email } });
         return;
       }
 
       dispatch(login(userData));
-
       const isAdmin = userData.labels?.includes("admin");
-      // userId was set to the username at account creation, so $id === username
-      // -> redirects to /:username/profile, not /user/:username
       navigate(isAdmin ? "/admin" : `/${userData["$id"]}/profile`, { replace: true });
     } catch (err) {
-      // 409 = an account with this id/email/phone already exists
       if (err?.code === 409) {
-        navigate("/login", { state: { email: data.email } });
+        navigate("/welcome-back", { state: { email: data.email } });
         return;
       }
       console.error("Unexpected signup error:", err);
@@ -114,12 +95,9 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl shadow-stone-900/5 dark:border-stone-800 dark:bg-stone-900">
-      {/* Image panel — hidden below lg so the form gets full width on
-          small screens instead of being squeezed next to a shrinking
-          image. Handles a failed/missing image with a graceful fallback
-          rather than a broken-image icon. */}
-      <div className="relative hidden w-[42%] shrink-0 lg:block">
+    <div className="flex min-h-screen w-full">
+      {/* Image panel — full height, half width, on large screens only */}
+      <div className="relative hidden w-[58%] shrink-0 lg:block">
         {!imageFailed && (
           <img
             src={SIGNUP_IMAGE_SRC}
@@ -133,8 +111,6 @@ export default function SignupForm() {
           />
         )}
 
-        {/* Fallback: shown when the image errors out, or while it's still
-            loading (so there's never a blank/broken box on screen). */}
         {(imageFailed || !imageLoaded) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-brand-600 via-brand-700 to-stone-900 px-6 text-center">
             {imageFailed ? (
@@ -150,42 +126,40 @@ export default function SignupForm() {
           </div>
         )}
 
-        {/* Overlay content sits above the image/fallback either way, so
-            the panel always looks intentional rather than empty. */}
-        <div className="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/60 via-black/10 to-black/30 p-8">
+        <div className="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/60 via-black/10 to-black/30 p-10">
           <div className="flex items-center gap-2 text-white">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
-              <Sparkles size={16} />
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
+              <Sparkles size={18} />
             </span>
-            <span className="text-sm font-semibold tracking-wide">YOUR APP</span>
+            <span className="text-base font-semibold tracking-wide">eTakhzeen</span>
           </div>
           <div>
-            <p className="text-xl font-semibold leading-snug text-white">
+            <p className="text-3xl font-semibold leading-snug text-white">
               Capturing moments, creating memories.
             </p>
-            <p className="mt-2 text-sm text-white/60">
+            <p className="mt-3 text-base text-white/60">
               Join thousands of people already using the platform.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Form panel */}
-      <div className="w-full px-6 py-8 sm:px-10 sm:py-10 lg:w-[58%]">
-        <div className="mx-auto max-w-md">
-          <div className="mb-7 flex items-start justify-between gap-4">
+      {/* Form panel — full height, half width, form itself is roomy */}
+      <div className="flex w-full items-center justify-center px-6 py-12 sm:px-12 lg:w-1/2">
+        <div className="w-full max-w-xl">
+          <div className="mb-9 flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-                <UserPlus size={18} />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-50 text-pink-500 dark:bg-brand-500/10 dark:text-pink-500">
+                <UserPlus size={22} />
               </span>
               <div>
-                <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100">Create your account</h2>
-                <p className="mt-0.5 text-sm text-stone-500 dark:text-stone-400">Takes less than a minute.</p>
+                <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Create your account</h2>
+                <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Takes less than a minute.</p>
               </div>
             </div>
             <Link
               to="/welcome-back"
-              className="mt-1 shrink-0 text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+              className="mt-1 shrink-0 text-sm font-medium text-pink-500 hover:underline dark:text-pink-500"
             >
               Log in
             </Link>
@@ -202,8 +176,8 @@ export default function SignupForm() {
             </p>
           )}
 
-          <form onSubmit={handleSubmit(onValid, onInvalid)} noValidate className="space-y-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <form onSubmit={handleSubmit(onValid, onInvalid)} noValidate className="space-y-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <Input
                   type="text"
@@ -279,7 +253,7 @@ export default function SignupForm() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <Input
                   type="password"
@@ -323,7 +297,7 @@ export default function SignupForm() {
             <Button
               type="submit"
               disabled={isSubmitting || isValidating || colsLoading || !isValid}
-              className={`w-full ${isSubmitting || isValidating ? "opacity-50" : ""}`}
+              className={`w-full ${isSubmitting || isValidating ? "opacity-50" : ""} bg-gradient-to-r from-pink-500 to-brand-600 `}
             >
               {isSubmitting ? "Submitting..." : "Create account"}
             </Button>
@@ -331,7 +305,7 @@ export default function SignupForm() {
 
           <p className="mt-6 text-center text-sm text-stone-500 dark:text-stone-400 lg:hidden">
             Already have an account?{" "}
-            <Link to="/welcome-back" className="font-medium text-brand-600 hover:underline dark:text-brand-500">
+            <Link to="/welcome-back" className="font-medium text-pink-500 hover:underline dark:text-pink-500">
               Log in
             </Link>
           </p>
