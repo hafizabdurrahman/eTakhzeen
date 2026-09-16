@@ -6,7 +6,7 @@ import ViewAllTile from './ViewAllTile';
 
 const PREVIEW_LIMIT = 4;
 
-function GroupPreview() {
+function GroupPreview(props) {
     const dispatch = useDispatch();
     const groups = useSelector((s) => s.products.catalogGroups);
 
@@ -16,7 +16,7 @@ function GroupPreview() {
 
     return (
         <section>
-            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">Shop by group</h2>
+            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">{props?.title}</h2>
             {groups.status === 'loading' && <p className="text-sm text-stone-500 dark:text-stone-400">Loading groups...</p>}
             {groups.status === 'failed' && <p className="text-sm text-red-600 dark:text-red-400">Failed to load groups.</p>}
             {groups.status === 'succeeded' && (

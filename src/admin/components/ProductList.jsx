@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import service from '../../backend/service';
 import { Checkbox } from '../../ui';
+import { customConfirm, customAlert } from '../../ui/dialog';
 
 function ProductList({ products, onEdit, onView, onRefresh }) {
     const [selected, setSelected] = useState([]);
@@ -20,24 +21,36 @@ function ProductList({ products, onEdit, onView, onRefresh }) {
     }
 
     async function handleDeleteOne(rowId, fileId) {
-        if (!confirm('Delete this product? This cannot be undone.')) return;
+        const confirmed = await customConfirm(
+            'Delete this product? This cannot be undone.',
+            { variant: 'danger', confirmLabel: 'Delete' }
+        );
+        if (!confirmed) return;
+
         setDeleting(true);
         const ok = await service.deleteProduct({ rowId });
         if (ok && fileId) {
             service.deleteImage({ fileId: fileId }).catch(() => {});
         }
         setDeleting(false);
+
         if (ok) {
             setSelected((prev) => prev.filter((id) => id !== rowId));
             onRefresh();
         } else {
-            alert('Failed to delete product.');
+            await customAlert('Failed to delete product.', { variant: 'danger' });
         }
     }
 
     async function handleDeleteSelected() {
         if (selected.length === 0) return;
-        if (!confirm(`Delete ${selected.length} product(s)? This cannot be undone.`)) return;
+
+        const confirmed = await customConfirm(
+            `Delete ${selected.length} product(s)? This cannot be undone.`,
+            { variant: 'danger', confirmLabel: 'Delete' }
+        );
+        if (!confirmed) return;
+
         setDeleting(true);
 
         // grab fileIds before the rows are gone, so we can clean up images too
@@ -51,12 +64,14 @@ function ProductList({ products, onEdit, onView, onRefresh }) {
                 service.deleteImage({ fileId: fileId }).catch(() => {});
             });
         }
+
         setDeleting(false);
+
         if (ok) {
             setSelected([]);
             onRefresh();
         } else {
-            alert('Failed to delete selected products.');
+            await customAlert('Failed to delete selected products.', { variant: 'danger' });
         }
     }
 
@@ -103,7 +118,7 @@ function ProductList({ products, onEdit, onView, onRefresh }) {
                         <th className="py-2.5 pr-4">Slug</th>
                         <th className="py-2.5 pr-4">Category</th>
                         <th className="py-2.5 pr-4">Group</th>
-                        <th className="py-2.5 pr-4">Price</th>
+                        <th className="py-2.5 pr-4">Price-PKR</th>
                         <th className="py-2.5 pr-4">Actions</th>
                     </tr>
                 </thead>
@@ -112,7 +127,7 @@ function ProductList({ products, onEdit, onView, onRefresh }) {
                         <tr
                             key={p['$id']}
                             onClick={() => onView && onView(p)}
-                            className={`border-b border-stone-100 transition-colors hover:bg-stone-50 dark:border-stone-800/60 dark:hover:bg-stone-800/60 ${
+                            className={`border-b border-stone-100 transition-colors hover:bg-stone-50 dark:border-stone-800/60 dark:hover:bg-stone-800/60 peer ${
                                 onView ? 'cursor-pointer' : ''
                             }`}
                         >
@@ -135,10 +150,10 @@ function ProductList({ products, onEdit, onView, onRefresh }) {
                                 )}
                             </td>
                             <td className="py-2 pr-4 font-medium text-stone-900 dark:text-stone-100">{p.name}</td>
-                            <td className="py-2 pr-4 text-stone-500 dark:text-stone-400">{p.slug}</td>
+                            <td className="py-2 pr-4 text-stone-500 dark:text-stone-400 hover:text-blue-500 dark:text-blue-400 transition">{p.slug}</td>
                             <td className="py-2 pr-4">{p.category}</td>
                             <td className="py-2 pr-4">{p.group}</td>
-                            <td className="py-2 pr-4">${Number(p.price).toFixed(2)}</td>
+                            <td className="py-2 pr-4">{Number(p.price).toFixed(1)}/-</td>
                             <td className="py-2 pr-4" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex gap-1.5">
                                     <button

@@ -28,10 +28,10 @@ function levelFor(count, max) {
 
 const LEVEL_CLASSES = [
     'fill-stone-100 dark:fill-stone-700',
-    'fill-emerald-300 dark:fill-emerald-800',
-    'fill-emerald-500 dark:fill-emerald-600',
-    'fill-emerald-700 dark:fill-emerald-400',
-    'fill-emerald-900 dark:fill-emerald-200',
+    'fill-emerald-300 dark:fill-emerald-300',
+    'fill-emerald-500 dark:fill-emerald-500',
+    'fill-emerald-700 dark:fill-emerald-700',
+    'fill-emerald-900 dark:fill-emerald-900',
 ];
 
 /**
@@ -63,6 +63,7 @@ function HeatmapCalendar({
     minWeeks = DEFAULT_MIN_WEEKS,
     maxWeeks = DEFAULT_MAX_WEEKS,
     onBoxClick,
+    unitLabel = 'order', // ⚠️ new — e.g. "product" for a product-activity heatmap; existing callers unaffected
 }) {
     const containerRef = useRef(null);
     const [hovered, setHovered] = useState(null);
@@ -200,8 +201,8 @@ function HeatmapCalendar({
         <div>
             <p className="mb-3 text-xs text-stone-500 dark:text-stone-400">
                 {bucketSize === 1
-                    ? `Each square is one day over the last ${coveredDays} days — darker means more orders were placed that day.`
-                    : `Each square covers ${bucketSize} days over the last ~${Math.round(coveredDays / 30)} months — darker means more orders were placed in that span.`}
+                    ? `Each square is one day over the last ${coveredDays} days — darker means more ${unitLabel}s were added that day.`
+                    : `Each square covers ${bucketSize} days over the last ~${Math.round(coveredDays / 30)} months — darker means more ${unitLabel}s were added in that span.`}
             </p>
             <div ref={containerRef} className="relative flex w-full justify-center">
                 <svg
@@ -226,6 +227,9 @@ function HeatmapCalendar({
                         {buckets.map((b) => {
                             if (b.isFuture) return null;
                             const level = levelFor(b.count, max);
+                            // Staggered draw-in, left to right by column, capped so a
+                            // wide grid doesn't leave the last columns waiting ages.
+                            const delayMs = Math.min(b.column * 10, 260);
                             return (
                                 <rect
                                     key={b.key}
@@ -234,9 +238,14 @@ function HeatmapCalendar({
                                     width={cell}
                                     height={cell}
                                     rx={2.5}
-                                    className={`${LEVEL_CLASSES[level]} transition-all duration-200 hover:opacity-70 ${
-                                        isClickable && b.count > 0 ? 'cursor-pointer' : 'cursor-default'
-                                    }`}
+                                    style={{
+                                        transformBox: 'fill-box',
+                                        transformOrigin: 'center',
+                                        transitionDelay: `${delayMs}ms`,
+                                    }}
+                                    className={`${LEVEL_CLASSES[level]} transition-all duration-500 ease-out hover:!scale-125 hover:opacity-80 ${
+                                        visible ? 'scale-100 opacity-100' : 'scale-50 opacity-0'
+                                    } ${isClickable && b.count > 0 ? 'cursor-pointer' : 'cursor-default'}`}
                                     onMouseMove={(e) => handleMove(e, b)}
                                     onMouseLeave={handleLeave}
                                     onClick={() => handleClick(b)}
@@ -258,8 +267,8 @@ function HeatmapCalendar({
                                                   ? hovered.start.toLocaleDateString()
                                                   : `${hovered.start.toLocaleDateString()} – ${hovered.end.toLocaleDateString()}`}
                                           </div>
-                                          <div className="opacity-80">
-                                              {hovered.count} order{hovered.count === 1 ? '' : 's'}
+                                            <div className="opacity-80">
+                                              {hovered.count} {unitLabel}{hovered.count === 1 ? '' : 's'}
                                           </div>
                                           {onBoxClick && hovered.count > 0 && (
                                               <div className="mt-0.5 text-[10px] opacity-60">Click to view</div>

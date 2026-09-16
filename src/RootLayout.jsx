@@ -6,6 +6,7 @@ import store from './store/store';
 import auth from './backend/auth';
 import { login, logout } from './store/slices/userSlice';
 import { BlockedGuard } from './components';
+import AuthLayout from './AuthLayout';
 
 function AuthBootstrap() {
     const dispatch = useDispatch();

@@ -196,11 +196,23 @@ function TrendAreaChart({ series, xLabels, valueFormatter = (n) => n, height = 2
                     const dash = dashFor(s, i);
                     const on = visible.has(s.key);
                     return (
-                        <button
+                        // NOTE: was a <button> — a native <button> cannot contain
+                        // another <button> (ColorCheckbox), which produced a DOM
+                        // nesting / hydration error. This is now a <div> with
+                        // button-like a11y semantics; ColorCheckbox stays the real
+                        // interactive control and stops propagation on its own click.
+                        <div
                             key={s.key}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             onClick={() => toggleSeries(s.key)}
-                            className={`flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggleSeries(s.key);
+                                }
+                            }}
+                            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1 text-xs transition-colors ${
                                 on
                                     ? 'border-stone-200 bg-stone-50 dark:border-stone-700 dark:bg-stone-800'
                                     : 'border-transparent opacity-50 hover:opacity-80'
@@ -209,7 +221,7 @@ function TrendAreaChart({ series, xLabels, valueFormatter = (n) => n, height = 2
                             <ColorCheckbox checked={on} color={s.color} onChange={() => toggleSeries(s.key)} label={`Toggle ${s.name}`} />
                             <DashSwatch color={s.color} dash={dash} />
                             <span className="font-medium text-stone-600 dark:text-stone-300">{s.name}</span>
-                        </button>
+                        </div>
                     );
                 })}
             </div>

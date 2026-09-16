@@ -1,6 +1,7 @@
 import React from 'react';
 import RootLayout from './RootLayout';
 import StorefrontLayout from './StorefrontLayout';
+import AuthLayout from './AuthLayout'; // ⚠️ adjust path — put AuthLayout.jsx alongside RootLayout/StorefrontLayout
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider, Navigate } from 'react-router';
 import { Home, Contact, ContactEmptyState, ContactThread, Cart, Login, Signup, User, Products, Product, Error, Blocked, Orders, Order, Announcements } from './pages';
 import { AllCategoriesPage, CategoryGroupsPage, AllGroupsPage, GroupProductsPage } from './pages';
@@ -22,6 +23,8 @@ import {
   AdminOrders,
   AdminOrderDetail,
   AdminFinance,
+  AdminSettings,
+  UnderConstruction
 } from "./admin";
 
 import { OrderForm } from './components';
@@ -42,6 +45,26 @@ const router = createBrowserRouter(
           <Route path=':department' element={<ContactThread />} />
         </Route>
         <Route path='blocked' element={<Blocked />} />
+
+        <Route path='checkout' element={<OrderForm />} />
+
+        <Route path='announcements' element={<Announcements />} />
+        <Route path='announcements/:announcementId' element={<Announcements />} />
+
+        <Route path='products' element={<Products />} />
+        <Route path='products/categories' element={<AllCategoriesPage />} />
+        <Route path='products/groups' element={<AllGroupsPage />} />
+        <Route path='products/category/:categoryName' element={<CategoryGroupsPage />} />
+        <Route path='products/category/:categoryName/groups' element={<AllGroupsPage />} />
+        <Route path='products/category/:categoryName/group/:groupName' element={<GroupProductsPage />} />
+        <Route path='products/:category/:group/:slug' element={<Product />} />
+      </Route>
+
+      {/* AUTH — sibling of StorefrontLayout, so no Header/Footer/announcement
+          popup, just AuthLayout's neon background centering the form. Still
+          a child of RootLayout, so Redux/theme/auth/BlockedGuard still apply,
+          and RedirectIfAuthenticated still bounces logged-in users away. */}
+      <Route element={<AuthLayout />}>
         <Route
           path='welcome-back'
           element={(
@@ -58,19 +81,6 @@ const router = createBrowserRouter(
             </RedirectIfAuthenticated>
           )}
         />
-
-        <Route path='checkout' element={<OrderForm />} />
-
-        <Route path='announcements' element={<Announcements />} />
-        <Route path='announcements/:announcementId' element={<Announcements />} />
-
-        <Route path='products' element={<Products />} />
-        <Route path='products/categories' element={<AllCategoriesPage />} />
-        <Route path='products/groups' element={<AllGroupsPage />} />
-        <Route path='products/category/:categoryName' element={<CategoryGroupsPage />} />
-        <Route path='products/category/:categoryName/groups' element={<AllGroupsPage />} />
-        <Route path='products/category/:categoryName/group/:groupName' element={<GroupProductsPage />} />
-        <Route path='products/:category/:group/:slug' element={<Product />} />
       </Route>
 
       {/* USER PANEL — sibling of StorefrontLayout, so no Header/Footer,
@@ -106,18 +116,58 @@ const router = createBrowserRouter(
         <Route path='finance' element={<AdminFinance />} />
         <Route path='products' element={<AdminProducts />} />
         <Route path='users' element={<AdminUsers />} />
+        <Route path='settings' element={<AdminSettings />} />
         <Route path='users/:username' element={<AdminUserProfile />} />
         <Route path='orders' element={<AdminOrders />} />
         <Route path='orders/:orderId' element={<AdminOrderDetail />} />
         <Route path='announcements' element={<AdminAnnouncements />} />
         <Route path='announcements/new' element={<AdminAnnouncementDetail />} />
         <Route path='announcements/:announcementId' element={<AdminAnnouncementDetail />} />
-        <Route path='contact' element={<AdminContact />}>
+        {/* <Route path='contact' element={<AdminContact />}>
           <Route index element={<AdminContactEmptyState />} />
           <Route path='new' element={<AdminContactNewConversation />} />
           <Route path=':conversationId' element={<AdminContactThread />} />
-        </Route>
+        </Route> */}
+        <Route
+          path="contact"
+          element={
+            <UnderConstruction
+              title="Contact"
+              description="Contact section is under construction"
+              note="Expected in the next release"
+              progress={22}
+              onBack={() => window.history.back()}
+            />
+          }
+        />
+        <Route
+          path="layout"
+          element={
+            <UnderConstruction
+              title="Layout"
+              description="Layout section is under construction"
+              note="Expected in the next release"
+              progress={15}
+              onBack={() => window.history.back()}
+            />
+          }
+        />
       </Route>
+      <Route
+          path="sell"
+          element={
+              <UnderConstruction
+                  title="Seller Accounts"
+                  description="Business and seller accounts are on the way — list your own products, manage orders, and reach shoppers already here."
+                  note="Coming soon"
+                  progress={35}
+                  onBack={() => window.history.back()}
+              />
+          }
+      />
+      <Route path="privacy" element={<UnderConstruction title="Privacy Policy" description="Our privacy policy is being finalized." onBack={() => window.history.back()} />} />
+      <Route path="terms" element={<UnderConstruction title="Terms of Service" description="Our terms of service are being finalized." onBack={() => window.history.back()} />} />
+      <Route path="shipping-returns" element={<UnderConstruction title="Shipping & Returns" description="Our shipping and returns policy is being finalized." onBack={() => window.history.back()} />} />
 
       <Route path='*' element={<Error />} />
     </Route>

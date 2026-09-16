@@ -10,7 +10,7 @@ const DISPLAY_LIMIT = 5;
 // Landing-page preview strip — pure navigation, same circle treatment as
 // CategoriesSection but with no selection state (every CategoryTile here
 // is a plain Link since onSelect is never passed).
-function CategoryPreview() {
+function CategoryPreview(props) {
     const dispatch = useDispatch();
     const categories = useSelector((s) => s.products.catalogCategories);
 
@@ -20,7 +20,7 @@ function CategoryPreview() {
 
     return (
         <section>
-            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">Shop by category</h2>
+            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">{props?.title}</h2>
 
             {categories.status === 'loading' && (
                 <div className="flex gap-5 sm:gap-6">

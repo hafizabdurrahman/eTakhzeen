@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChevronLeft, ChevronRight, Menu, X, LogOut, ShieldCheck } from 'lucide-react';
 import { adminNavItems } from '../adminNavConfig';
 import auth from '../../backend/auth'; // ⚠️ adjust path to match your project
-import { logout as logoutAction } from '../../store/slices/userSlice'; // ⚠️ adjust path
+import { user } from '../../backend'; // ⚠️ adjust path to match your project
+import { logout as logoutAction, setUser } from '../../store/slices/userSlice'; // ⚠️ adjust path
+import { normalizeUserRows } from '../../utils/userLabels'; // ⚠️ adjust path to match your project
 
 // Tailwind can't resolve fully-dynamic class strings like
 // `text-${color}-500` at build time (its scanner needs literal class
@@ -17,10 +19,18 @@ const ICON_COLOR_CLASSES = {
     violet: 'text-violet-500 dark:text-violet-400',
     orange: 'text-orange-500 dark:text-orange-400',
     fuchsia: 'text-fuchsia-500 dark:text-fuchsia-400',
-    emerald: 'text-emerald-500 dark:text-emerald-400',
+    tomato: 'text-red-500 dark:text-red-400',
     amber: 'text-amber-500 dark:text-amber-400',
     stone: 'text-stone-500 dark:text-stone-400',
+    green: 'text-green-500 dark:text-green-400',
+    warm: 'text-orange-600 dark:text-orange-700'
 };
+
+// Paths that should warm the redux cache as soon as the user shows intent
+// to visit them (hover/focus on the nav link), so the destination page
+// mounts with data already in the store instead of showing a spinner.
+// Add more entries here as other admin pages grow their own store slices.
+const PREFETCHABLE_PATHS = new Set(['/admin/users']);
 
 function AdminLayout() {
     const [collapsed, setCollapsed] = useState(false);
@@ -31,7 +41,36 @@ function AdminLayout() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const userData = useSelector((s) => s.user.userData);
+    const allCols = useSelector((s) => s.user.allCols);
     const adminName = userData?.name || userData?.username || 'Admin';
+
+    // Guards against firing a duplicate request if the pointer re-enters
+    // the link (or it's both hovered and focused) before the first
+    // request resolves. Not component state on purpose — flipping it
+    // shouldn't trigger a re-render.
+    const prefetchingUsersRef = useRef(false);
+
+    async function handlePrefetchUsers() {
+        if (allCols !== null || prefetchingUsersRef.current) return;
+        prefetchingUsersRef.current = true;
+        try {
+            const rows = await user.getProfile({
+                requesterLabels: userData?.labels,
+                requesterId: userData?.['$id'],
+            });
+            if (Array.isArray(rows)) dispatch(setUser(normalizeUserRows(rows)));
+        } catch {
+            // Silent: this is a background warm-up, not a user-facing
+            // action. If it fails, AdminUsers's own effect will retry
+            // and surface the real error state on mount.
+        } finally {
+            prefetchingUsersRef.current = false;
+        }
+    }
+
+    const PREFETCH_HANDLERS = {
+        '/admin/users': handlePrefetchUsers,
+    };
 
     async function handleLogout() {
         setLoggingOut(true);
@@ -125,12 +164,15 @@ function AdminLayout() {
                     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-2 pb-4">
                         {adminNavItems.map(({ label, path, end, icon: Icon, color }) => {
                             const iconColorClass = ICON_COLOR_CLASSES[color] || ICON_COLOR_CLASSES.stone;
+                            const prefetch = PREFETCH_HANDLERS[path];
                             return (
                                 <NavLink
                                     key={path || 'index'}
                                     to={path}
                                     end={end}
                                     onClick={() => setMobileOpen(false)}
+                                    onMouseEnter={prefetch}
+                                    onFocus={prefetch}
                                     title={collapsed ? label : undefined}
                                     className={({ isActive }) =>
                                         `group flex items-center gap-3 rounded-md border-l-4 px-3 py-2.5 text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-stone-950 ${

@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation, Link } from 'react-router';
-import { Mail, Lock, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import auth from '../../backend/auth';
 import { login } from '../../store/slices/userSlice';
-import { Button } from '../.';
 
 function LoginForm() {
     const {
@@ -57,33 +56,31 @@ function LoginForm() {
     };
 
     return (
-        <div className="rounded-xl border border-stone-200 bg-cream p-6 shadow-sm sm:p-8 dark:border-stone-800 dark:bg-stone-900">
-            <div className="mb-6 flex flex-col items-center text-center">
-                <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
-                    <LogIn size={20} />
-                </span>
-                <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Welcome back</h2>
-                <p className="mt-1 text-sm text-stone-500 dark:text-stone-400">Log in to continue to your account.</p>
-            </div>
+        // No card, no background, no border — floats directly over
+        // AuthLayout's rings, per feedback. Just the fields themselves.
+        // max-w-md lives here now (not in AuthLayout), since AuthLayout no
+        // longer constrains Outlet width — Signup needs to be much wider.
+        <div className="w-full max-w-md">
+            <h1 className="mb-8 text-center text-3xl font-semibold text-stone-900 dark:text-white">Login</h1>
 
             {location.state?.email && (
-                <p className="mb-5 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+                <p className="mb-5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200">
                     An account with this email already exists — log in below.
                 </p>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
                 <div>
-                    <label className="mb-1.5 block text-sm font-medium text-stone-900 dark:text-stone-100" htmlFor="email">
-                        Email
-                    </label>
                     <div className="relative">
-                        <Mail size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+                        <Mail
+                            size={16}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-white/40"
+                        />
                         <input
                             id="email"
                             type="email"
-                            placeholder="you@example.com"
-                            className="min-h-10 w-full rounded-md border border-stone-200 bg-cream py-2 pl-9 pr-3 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
+                            placeholder="Email"
+                            className="min-h-12 w-full rounded-full border border-stone-300 bg-transparent py-2 pl-11 pr-4 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-white/20 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/50 dark:focus:ring-white/10"
                             {...register('email', {
                                 required: 'Email is required',
                                 pattern: {
@@ -94,25 +91,23 @@ function LoginForm() {
                         />
                     </div>
                     {errors.email && (
-                        <p className="mt-1.5 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                        <p className="mt-1.5 flex items-center gap-1 pl-2 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle size={12} /> {errors.email.message}
                         </p>
                     )}
                 </div>
 
                 <div>
-                    <div className="mb-1.5 flex items-center justify-between">
-                        <label className="text-sm font-medium text-stone-900 dark:text-stone-100" htmlFor="password">
-                            Password
-                        </label>
-                    </div>
                     <div className="relative">
-                        <Lock size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+                        <Lock
+                            size={16}
+                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 dark:text-white/40"
+                        />
                         <input
                             id="password"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="Enter your password"
-                            className="min-h-10 w-full rounded-md border border-stone-200 bg-cream py-2 pl-9 pr-10 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20"
+                            placeholder="Password"
+                            className="min-h-12 w-full rounded-full border border-stone-300 bg-transparent py-2 pl-11 pr-10 text-sm text-stone-900 placeholder:text-stone-400 focus:border-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-200 dark:border-white/20 dark:text-white dark:placeholder:text-white/40 dark:focus:border-white/50 dark:focus:ring-white/10"
                             {...register('password', {
                                 required: 'Password is required',
                                 minLength: {
@@ -125,33 +120,40 @@ function LoginForm() {
                             type="button"
                             onClick={() => setShowPassword((s) => !s)}
                             aria-label={showPassword ? 'Hide password' : 'Show password'}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 transition-colors hover:text-stone-600 dark:text-white/40 dark:hover:text-white/70"
                         >
                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                     </div>
                     {errors.password && (
-                        <p className="mt-1.5 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                        <p className="mt-1.5 flex items-center gap-1 pl-2 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle size={12} /> {errors.password.message}
                         </p>
                     )}
                 </div>
 
                 {authError && (
-                    <p className="flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">
+                    <p className="flex items-center gap-1.5 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-300">
                         <AlertCircle size={14} className="shrink-0" /> {authError}
                     </p>
                 )}
 
-                <Button type="submit" disabled={isSubmitting} className="w-full">
-                    {isSubmitting ? 'Logging in...' : 'Login'}
-                </Button>
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="min-h-12 w-full rounded-full bg-gradient-to-r from-blue-500 via-blue-400 to-blue-300 text-sm font-semibold text-white shadow-lg shadow-pink-500/20 transition-transform duration-150 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {isSubmitting ? 'Signing in...' : 'Sign in'}
+                </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-stone-500 dark:text-stone-400">
+            <p className="mt-5 text-center text-sm text-stone-500 dark:text-white/50">
                 Don't have an account?{' '}
-                <Link to="/create-account" className="font-medium text-brand-600 hover:underline dark:text-brand-500">
-                    Create one
+                <Link
+                    to="/create-account"
+                    className="font-medium text-stone-900 hover:underline dark:text-white/80 dark:hover:text-white"
+                >
+                    Sign up
                 </Link>
             </p>
         </div>

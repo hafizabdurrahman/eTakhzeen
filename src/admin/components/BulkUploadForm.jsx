@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FolderUp, Tag, Layers, X, PackagePlus, RotateCcw } from 'lucide-react';
+import { FolderUp, Tag, Layers, X, PackagePlus, RotateCcw, Hash } from 'lucide-react';
 import service from '../../backend/service';
 import { slugify, nameFromFilename, makeSlugUnique, buildDescriptionFromTemplate } from '../../utils/slug';
 import { SegmentedControl } from '../../ui';
@@ -14,16 +14,107 @@ const DESCRIPTION_MODE_OPTIONS = [
     { value: 'separate', label: 'Edit separately' },
 ];
 
+const KEYWORDS_MODE_OPTIONS = [
+    { value: 'same', label: 'Same for all' },
+    { value: 'separate', label: 'Edit separately' },
+];
+
+const inputClass =
+    'w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500 dark:focus:ring-brand-500/20';
+
+const smallInputClass =
+    'w-full rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500';
+
+// A YouTube-tags-style input: type a keyword, hit Enter or "," to turn it
+// into a chip. The chip set is what's actually stored — the text box is
+// just a staging area and clears after each commit. `value` / `onChange`
+// speak in the outside world's format: one string, keywords separated by
+// commas (e.g. "handmade,cotton,rug").
+function KeywordsInput({ value, onChange, placeholder, small }) {
+    const [draft, setDraft] = useState('');
+
+    const keywords = (value || '')
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+    function commit(rawValue) {
+        const keyword = rawValue.trim();
+        setDraft('');
+        if (!keyword) return;
+        if (keywords.some((k) => k.toLowerCase() === keyword.toLowerCase())) return;
+        onChange([...keywords, keyword].join(','));
+    }
+
+    function handleKeyDown(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            commit(draft);
+        } else if (e.key === 'Backspace' && draft === '' && keywords.length > 0) {
+            // Convenience: backspacing on an empty box edits the last chip
+            // instead of silently doing nothing.
+            const last = keywords[keywords.length - 1];
+            onChange(keywords.slice(0, -1).join(','));
+            setDraft(last);
+        }
+    }
+
+    // Clicking a chip's "x" removes it from the saved list and drops its
+    // text back into the box (replacing whatever was being typed), so it's
+    // easy to fix a typo instead of retyping the whole keyword.
+    function handleRemove(index) {
+        const removed = keywords[index];
+        onChange(keywords.filter((_, i) => i !== index).join(','));
+        setDraft(removed);
+    }
+
+    return (
+        <div>
+            <input
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={() => commit(draft)}
+                placeholder={placeholder}
+                className={small ? smallInputClass : inputClass}
+            />
+            {keywords.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                    {keywords.map((keyword, i) => (
+                        <span
+                            key={`${keyword}-${i}`}
+                            className="inline-flex items-center gap-1 rounded-full bg-stone-100 py-1 pl-2.5 pr-1.5 text-xs font-medium text-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                        >
+                            {keyword}
+                            <button
+                                type="button"
+                                onClick={() => handleRemove(i)}
+                                title={`Remove "${keyword}"`}
+                                aria-label={`Remove ${keyword}`}
+                                className="rounded-full p-0.5 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-stone-500 dark:hover:bg-red-500/15 dark:hover:text-red-400"
+                            >
+                                <X size={11} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Bulk-create products from a folder of images. If the Group already exists
 // (has other products), these get added to it; if it doesn't exist yet,
 // it's created simply by these products carrying that group value — group
 // isn't a separate table, it's just a shared field.
 //
 // Category & Group are always one value for the whole batch.
-// Price and Description each have a "same for all" vs "edit separately" toggle.
+// Price, Description, and Keywords each have a "same for all" vs "edit
+// separately" toggle.
 // Returnable is also whole-batch — a per-item override can be added later.
 function BulkUploadForm({ onDone, onCancel }) {
-    const [items, setItems] = useState([]); // [{ file, name, slug, price, description }]
+    const [items, setItems] = useState([]); // [{ file, name, slug, price, description, keywords }]
 
     const [category, setCategory] = useState('');
     const [group, setGroup] = useState('');
@@ -35,6 +126,9 @@ function BulkUploadForm({ onDone, onCancel }) {
     const [descriptionMode, setDescriptionMode] = useState('same'); // 'same' | 'separate'
     const [templateName, setTemplateName] = useState('');
     const [templateDescription, setTemplateDescription] = useState('');
+
+    const [keywordsMode, setKeywordsMode] = useState('same'); // 'same' | 'separate'
+    const [sharedKeywords, setSharedKeywords] = useState('');
 
     const [submitting, setSubmitting] = useState(false);
     const [progress, setProgress] = useState('');
@@ -53,6 +147,7 @@ function BulkUploadForm({ onDone, onCancel }) {
                 slug: slugify(name),
                 price: '',
                 description: '',
+                keywords: '',
             };
         });
 
@@ -136,6 +231,7 @@ function BulkUploadForm({ onDone, onCancel }) {
                     descriptionMode === 'same'
                         ? buildDescriptionFromTemplate(templateDescription, templateName, item.name)
                         : item.description;
+                const keywords = keywordsMode === 'same' ? sharedKeywords : item.keywords;
 
                 return {
                     name: item.name,
@@ -146,6 +242,7 @@ function BulkUploadForm({ onDone, onCancel }) {
                     group: group.trim(),
                     fileId: uploaded[i],
                     isReturnable,
+                    keywords: keywords || '',
                 };
             });
 
@@ -329,6 +426,33 @@ function BulkUploadForm({ onDone, onCancel }) {
                 )}
             </div>
 
+            {/* Keywords */}
+            <div>
+                <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-stone-900 dark:text-stone-100">
+                        <Hash size={13} className="text-stone-400 dark:text-stone-500" /> Keywords
+                    </label>
+                    <SegmentedControl
+                        name="Keywords mode"
+                        options={KEYWORDS_MODE_OPTIONS}
+                        value={keywordsMode}
+                        onChange={setKeywordsMode}
+                    />
+                </div>
+                {keywordsMode === 'same' && (
+                    <>
+                        <KeywordsInput
+                            value={sharedKeywords}
+                            onChange={setSharedKeywords}
+                            placeholder="Type a keyword, then press Enter or , (applied to every product)"
+                        />
+                        <p className="mt-1.5 text-xs text-stone-500 dark:text-stone-400">
+                            Press Enter or "," to add a keyword. Saved as a single comma-separated list.
+                        </p>
+                    </>
+                )}
+            </div>
+
             {/* Per-item preview / editing */}
             {items.length > 0 && (
                 <div>
@@ -377,6 +501,15 @@ function BulkUploadForm({ onDone, onCancel }) {
                                         rows={2}
                                         placeholder="Description"
                                         className="w-full rounded-md border border-stone-200 bg-white px-2 py-1.5 text-sm text-stone-900 placeholder:text-stone-400 focus:border-brand-600 focus:outline-none dark:border-stone-800 dark:bg-stone-900 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:border-brand-500"
+                                    />
+                                )}
+
+                                {keywordsMode === 'separate' && (
+                                    <KeywordsInput
+                                        value={item.keywords}
+                                        onChange={(value) => updateItem(i, 'keywords', value)}
+                                        placeholder="Keywords for this product"
+                                        small
                                     />
                                 )}
                             </div>

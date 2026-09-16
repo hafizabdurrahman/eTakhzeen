@@ -5,6 +5,7 @@ import {
     Wallet, TrendingUp, TrendingDown, Banknote, Percent, AlertTriangle,
     LineChart, PieChart, BarChart3, CalendarDays, ReceiptText, ClipboardList,
     Package, Clock, RefreshCw, Truck, CheckCircle2, RotateCcw, XCircle, ChevronRight,
+    Sparkles,
 } from 'lucide-react';
 import service from '../../backend/service';
 import { fetchAllOrdersAdmin } from '../../store/slices/orderSlice'; // ⚠️ adjust path
@@ -104,6 +105,27 @@ function Reveal({ children, delay = 0 }) {
             {children}
         </div>
     );
+}
+
+// Counts up from 0 to `value` with an ease-out curve — same behavior used
+// for every stat/KPI figure elsewhere in the admin panel.
+function AnimatedNumber({ value, duration = 800, formatter }) {
+    const [display, setDisplay] = useState(0);
+    useEffect(() => {
+        const numeric = Number(value) || 0;
+        let frame;
+        let start;
+        function tick(ts) {
+            if (start === undefined) start = ts;
+            const progress = Math.min((ts - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay(numeric * eased);
+            if (progress < 1) frame = requestAnimationFrame(tick);
+        }
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [value, duration]);
+    return <>{formatter ? formatter(display) : Math.round(display)}</>;
 }
 
 function AdminFinance() {
@@ -298,6 +320,16 @@ function AdminFinance() {
 
     return (
         <div className="space-y-6">
+            {/* Scoped keyframes — same gradient shimmer used across the other
+                admin pages, kept local to this file. */}
+            <style>{`
+                @keyframes admin-gradient-shimmer {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+            `}</style>
+
             <Reveal delay={0}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -305,8 +337,14 @@ function AdminFinance() {
                             <Wallet size={14} />
                             Finance
                         </span>
-                        <h1 className="mt-1 text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 sm:text-3xl">
-                            Revenue &amp; profitability
+                        <h1 className="mt-1 flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
+                            <span
+                                className="bg-gradient-to-r from-brand-600 via-emerald-500 to-brand-600 bg-[length:200%_auto] bg-clip-text text-transparent dark:from-brand-400 dark:via-emerald-400 dark:to-brand-400"
+                                style={{ animation: 'admin-gradient-shimmer 6s ease infinite' }}
+                            >
+                                Revenue &amp; profitability
+                            </span>
+                            <Sparkles size={20} className="text-amber-500 dark:text-amber-400" aria-hidden="true" />
                         </h1>
                         <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
                             Revenue, cost, profit, and loss from cancellations — Cancelled/Returned orders count as
@@ -394,15 +432,21 @@ function AdminFinance() {
                             <>
                                 <div className="mb-4 grid grid-cols-3 gap-2 rounded-md bg-stone-50 p-3 text-center dark:bg-stone-800/50">
                                     <div>
-                                        <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">{cancelReturnRate.cancelled}</p>
+                                        <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
+                                            <AnimatedNumber value={cancelReturnRate.cancelled} />
+                                        </p>
                                         <p className="text-[11px] text-stone-500 dark:text-stone-400">Cancelled</p>
                                     </div>
                                     <div>
-                                        <p className="text-lg font-bold tabular-nums text-orange-600 dark:text-orange-400">{cancelReturnRate.returned}</p>
+                                        <p className="text-lg font-bold tabular-nums text-orange-600 dark:text-orange-400">
+                                            <AnimatedNumber value={cancelReturnRate.returned} />
+                                        </p>
                                         <p className="text-[11px] text-stone-500 dark:text-stone-400">Returned</p>
                                     </div>
                                     <div>
-                                        <p className="text-lg font-bold tabular-nums text-stone-900 dark:text-stone-100">{cancelReturnRate.rate.toFixed(1)}%</p>
+                                        <p className="text-lg font-bold tabular-nums text-stone-900 dark:text-stone-100">
+                                            <AnimatedNumber value={cancelReturnRate.rate} formatter={(v) => `${v.toFixed(1)}%`} />
+                                        </p>
                                         <p className="text-[11px] text-stone-500 dark:text-stone-400">Of all orders</p>
                                     </div>
                                 </div>
@@ -456,7 +500,7 @@ function AdminFinance() {
                                         <li key={order['$id']}>
                                             <button
                                                 onClick={() => navigate(`/admin/orders/${order['$id']}`)}
-                                                className="group flex w-full items-center justify-between gap-3 rounded-md py-2.5 text-sm transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
+                                                className="group px-1 sm:px-2 lg:px-3 flex w-full items-center justify-between gap-3 rounded-md py-2.5 text-sm transition-colors hover:bg-stone-50 dark:hover:bg-stone-800"
                                             >
                                                 <span className="flex min-w-0 items-center gap-2.5">
                                                     <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${STATUS_BADGE_CLASSES[order.status] || 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'}`}>
@@ -561,7 +605,9 @@ function KpiCard({ label, value, loading, icon: Icon, chip, valueClass, formatte
                 <Icon size={15} />
             </span>
             <p className="text-xs font-medium text-stone-500 dark:text-stone-400">{label}</p>
-            <p className={`text-lg font-bold tabular-nums sm:text-xl ${valueClass}`}>{loading ? '—' : formatter(value)}</p>
+            <p className={`text-lg font-bold tabular-nums sm:text-xl ${valueClass}`}>
+                {loading ? '—' : <AnimatedNumber value={value} formatter={formatter} />}
+            </p>
         </div>
     );
 }

@@ -33,5 +33,3 @@ coverage/
 *.sln
 *.sw?
 
-# Local environment helper containing deployment values
-envVars/vars.js

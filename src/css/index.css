@@ -1,8 +1,8 @@
 @config '../../tailwind.config.js';
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+::-webkit-scrollbar { display: none !important; }
+::-webkit-scrollbar { scrollbar-width: none; -ms-overflow-style: none !important; }
 
 @theme {
 	--color-brand-50: #eff6ff;

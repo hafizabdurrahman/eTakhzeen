@@ -13,5 +13,7 @@ import AdminContactEmptyState from "./components/AdminContactEmptyState";
 import AdminContactNewConversation from "./components/AdminContactNewConversation";
 import AdminContactThread from "./components/AdminContactThread";
 import AdminFinance from "./components/AdminFinance";
+import AdminSettings from "./components/AdminSettings";
+import UnderConstruction from "./components/UnderConstruction";
 
-export { AdminContactEmptyState, AdminContactNewConversation, AdminContactThread, AdminAnnouncements, AdminContact, AdminDashboard, AdminLayout, AdminProducts, AdminUsers, AdminUserProfile, AdminOrders, AdminOrderDetail, RichTextEditor, AdminAnnouncementDetail, AdminFinance };
+export { AdminContactEmptyState, AdminContactNewConversation, AdminContactThread, AdminAnnouncements, AdminContact, AdminDashboard, AdminLayout, AdminProducts, AdminUsers, AdminUserProfile, AdminOrders, AdminOrderDetail, RichTextEditor, AdminAnnouncementDetail, AdminFinance, AdminSettings, UnderConstruction };

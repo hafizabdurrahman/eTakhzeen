@@ -39,7 +39,7 @@ function Select({ value, onChange, options, placeholder = 'Select...', disabled 
     }
 
     return (
-        <div ref={rootRef} className={`relative ${className}`}>
+        <div ref={rootRef} className={`relative z-40 ${className}`}>
             <button
                 type="button"
                 disabled={disabled}
