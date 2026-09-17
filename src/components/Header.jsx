@@ -30,7 +30,10 @@ function Header() {
         if (menuOpen) {
             document.body.style.overflow = 'hidden';
             const frame = requestAnimationFrame(() => setMenuVisible(true));
-            return () => cancelAnimationFrame(frame);
+            return () => {
+                cancelAnimationFrame(frame);
+                document.body.style.overflow = '';
+            };
         }
         document.body.style.overflow = '';
         return undefined;
