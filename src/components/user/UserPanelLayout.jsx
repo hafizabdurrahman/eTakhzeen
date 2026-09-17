@@ -16,7 +16,7 @@ function UserPanelLayout() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex h-dvh overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
             <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3 dark:border-stone-800 dark:bg-stone-900 md:hidden">
                 <span className="text-base font-semibold text-stone-900 dark:text-stone-100">My Account</span>
                 <button
@@ -45,7 +45,7 @@ function UserPanelLayout() {
                 setMobileOpen={setMobileOpen}
             />
 
-            <main className="min-w-0 flex-1 bg-white p-4 pt-20 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:p-6 sm:pt-6 md:p-8">
+            <main className="min-h-0 min-w-0 flex-1 overflow-y-auto bg-white p-4 pt-20 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:p-6 sm:pt-6 md:h-auto md:overflow-visible md:p-8">
                 <Outlet />
             </main>
         </div>
