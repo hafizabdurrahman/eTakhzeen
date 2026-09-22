@@ -14,7 +14,7 @@ import {
     toBool,
     toKeywordString,
     findDescriptionFile,
-} from '../../utils/propertiesFile';
+} from '../../utils/propertiesFile'; 
 import { SegmentedControl, Combobox } from '../../ui';
 import { customConfirm } from '../../ui/dialog';
 import { UploadProgress } from '../';
