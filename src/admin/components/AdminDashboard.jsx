@@ -7,7 +7,7 @@ import { fetchAllOrdersAdmin } from '../../store/slices/orderSlice'; // ⚠️ a
 import { fetchAllAnnouncementsAdmin } from '../../store/slices/announcementSlice'; // ⚠️ adjust path
 import { ORDER_STATUS_PRIORITY } from '../../backend/order';
 
-import { HeatmapCalendar, DonutChart, GroupedBarChart } from '../../ui';
+import { HeatmapCalendar, DonutChart, GroupedBarChart, Toggle } from '../../ui';
 import {
     ShieldCheck, Sparkles, TrendingUp, AlertTriangle,
     Package, Tags, Layers, ShoppingCart, Users, ShieldAlert, Megaphone,
@@ -139,6 +139,10 @@ function AdminDashboard() {
     const [loadingLocal, setLoadingLocal] = useState(true);
     const [error, setError] = useState(null);
 
+    // Which series the heatmap is showing. false = orders (the default,
+    // matching how the panel behaved before the toggle existed).
+    const [showProducts, setShowProducts] = useState(true);
+
     useEffect(() => {
         dispatch(fetchAllOrdersAdmin());
         dispatch(fetchAllAnnouncementsAdmin());
@@ -209,6 +213,37 @@ function AdminDashboard() {
         [orders]
     );
 
+    // One entry per product, dated by creation day. Same shape as the order
+    // entries above, so the same calendar renders either series — products
+    // are already loaded for the stat cards, so this costs no extra request.
+    const productHeatmapEntries = useMemo(
+        () => products.filter((p) => p.$createdAt).map((p) => ({ date: new Date(p.$createdAt), count: 1 })),
+        [products]
+    );
+
+    const ordersLoading = ordersStatus === 'loading' || ordersStatus === 'idle';
+
+    // Resolving the toggle into one object up here keeps the JSX below free
+    // of a ternary on every prop.
+    const heatmap = showProducts
+        ? {
+              title: 'Products over time',
+              entries: productHeatmapEntries,
+              unitLabel: 'product',
+              loading: loadingLocal,
+              emptyText: 'No products yet.',
+          }
+        : {
+              title: 'Orders over time',
+              entries: orderHeatmapEntries,
+              unitLabel: 'order',
+              loading: ordersLoading,
+              emptyText: 'No orders yet.',
+          };
+
+    const blockedUsersCount = users.filter((u) => u.blocked).length;
+    const activeAnnouncementsCount = announcements.filter((a) => a.active).length;
+
     const roleSegments = useMemo(() => {
         const counts = { blocked: 0, admin: 0, manager: 0, support: 0, regular: 0 };
         users.forEach((u) => {
@@ -237,10 +272,6 @@ function AdminDashboard() {
                 })),
         [announcements]
     );
-
-    const blockedUsersCount = users.filter((u) => u.blocked).length;
-    const activeAnnouncementsCount = announcements.filter((a) => a.active).length;
-    const ordersLoading = ordersStatus === 'loading' || ordersStatus === 'idle';
 
     return (
         <div className="space-y-6">
@@ -388,16 +419,61 @@ function AdminDashboard() {
                 </div>
             </Reveal>
 
-            {/* Orders section — bottom, as before */}
+            {/* Orders section — bottom, as before. The heatmap now covers both
+                orders and products, switched by the toggle in the panel head. */}
             <Reveal delay={200}>
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    <Panel title="Orders over time" className="lg:col-span-2">
-                        {ordersLoading ? (
+                    <Panel
+                        title={heatmap.title}
+                        className="lg:col-span-2"
+                        action={
+                            <div className="flex items-center gap-2 text-xs font-medium">
+                                <span
+                                    className={
+                                        showProducts
+                                            ? 'text-stone-400 dark:text-stone-500'
+                                            : 'text-stone-900 dark:text-stone-100'
+                                    }
+                                >
+                                    Orders
+                                </span>
+                                <Toggle
+                                    checked={showProducts}
+                                    onChange={setShowProducts}
+                                    size="sm"
+                                    label="Show products instead of orders"
+                                />
+                                <span
+                                    className={
+                                        showProducts
+                                            ? 'text-stone-900 dark:text-stone-100'
+                                            : 'text-stone-400 dark:text-stone-500'
+                                    }
+                                >
+                                    Products
+                                </span>
+                            </div>
+                        }
+                    >
+                        {heatmap.loading && (
                             <p className="text-sm text-stone-500 dark:text-stone-400">Loading...</p>
-                        ) : (
-                            <HeatmapCalendar entries={orderHeatmapEntries} weeks={26} />
+                        )}
+                        {!heatmap.loading && heatmap.entries.length === 0 && (
+                            <p className="text-sm text-stone-500 dark:text-stone-400">{heatmap.emptyText}</p>
+                        )}
+                        {!heatmap.loading && heatmap.entries.length > 0 && (
+                            // `key` remounts the calendar on switch so the
+                            // staggered draw-in replays for the new series.
+                            // Drop it if you'd rather the squares recolor in place.
+                            <HeatmapCalendar
+                                key={showProducts ? 'products' : 'orders'}
+                                entries={heatmap.entries}
+                                weeks={26}
+                                unitLabel={heatmap.unitLabel}
+                            />
                         )}
                     </Panel>
+
                     <Panel title="Orders by status">
                         {ordersLoading && <p className="text-sm text-stone-500 dark:text-stone-400">Loading...</p>}
                         {!ordersLoading && sortedStatuses.length === 0 && (
@@ -456,12 +532,18 @@ function AdminDashboard() {
     );
 }
 
-function Panel({ title, subtitle, children, className = '' }) {
+// `action` is an optional right-hand slot in the panel head (used by the
+// heatmap panel for its Orders/Products toggle). Existing callers that
+// don't pass it render exactly as before.
+function Panel({ title, subtitle, children, className = '', action }) {
     return (
         <div className={`overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-stone-800 dark:bg-stone-900 ${className}`}>
-            <div className="border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-800 dark:bg-stone-800/40 sm:px-5">
-                <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">{title}</h2>
-                {subtitle && <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">{subtitle}</p>}
+            <div className="flex items-start justify-between gap-3 border-b border-stone-200 bg-stone-50 px-4 py-3 dark:border-stone-800 dark:bg-stone-800/40 sm:px-5">
+                <div className="min-w-0">
+                    <h2 className="text-sm font-semibold text-stone-900 dark:text-stone-100">{title}</h2>
+                    {subtitle && <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">{subtitle}</p>}
+                </div>
+                {action && <div className="shrink-0">{action}</div>}
             </div>
             <div className="p-4 sm:p-5">{children}</div>
         </div>

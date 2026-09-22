@@ -4,6 +4,7 @@ import {
     Tag, Layers, Link2, DollarSign, ImagePlus, FileText,
     RotateCcw, Save, X, Loader2, CheckCircle2, AlertCircle,
     UploadCloud, Trash2, PencilLine, Hash, MapPin, Clock, Sparkles,
+    FileUp, Download, Truck,
 } from 'lucide-react';
 import service from '../../backend/service';
 import { slugify } from '../../utils/slug';
@@ -24,6 +25,109 @@ const inputErrorClass =
 
 const labelClass =
     'mb-1.5 flex items-center gap-1.5 text-sm font-medium text-stone-900 dark:text-stone-100';
+
+// ---------- Default values ----------
+// Create mode (no initialData) -> every field empty.
+// Edit mode -> the product's saved values.
+function getDefaults(initialData) {
+    return {
+        name: initialData?.name || '',
+        description: initialData?.description || '',
+        price: initialData?.price ?? '',
+        costPrice: initialData?.costPrice ?? '',
+        deliveryPrice: initialData?.deliveryPrice ?? '',
+        category: initialData?.category || '',
+        group: initialData?.group || '',
+        slug: initialData?.slug || '',
+        fileId: initialData?.fileId || '',
+        isReturnable: initialData?.isReturnable ?? false,
+        keywords: initialData?.keywords || '',
+        sellerLocation: initialData?.sellerLocation || '',
+        deliveryDuration: initialData?.deliveryDuration || '',
+        featured: initialData?.featured ?? false,
+    };
+}
+
+// ---------- "Fill from file" helpers ----------
+// ---------- "Fill from file" helpers ----------
+const FIELD_ALIASES = {
+    name: 'name', productname: 'name', title: 'name',
+    description: 'description', desc: 'description',
+    price: 'price', sellingprice: 'price',
+    costprice: 'costPrice', cost: 'costPrice',
+    deliveryprice: 'deliveryPrice', deliveryfee: 'deliveryPrice', shippingcost: 'deliveryPrice', shippingprice: 'deliveryPrice',
+    category: 'category',
+    group: 'group',
+    slug: 'slug',
+    isreturnable: 'isReturnable', returnable: 'isReturnable',
+    keywords: 'keywords', tags: 'keywords',
+    sellerlocation: 'sellerLocation', location: 'sellerLocation',
+    deliveryduration: 'deliveryDuration', delivery: 'deliveryDuration',
+    featured: 'featured', isfeatured: 'featured',
+};
+
+const normalizeKey = (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const stripQuotes = (s) => s.replace(/^"(.*)"$/, '$1').replace(/^'(.*)'$/, '$1');
+
+// Returns an array of [key, value] pairs from JSON or "key: value" text.
+function parsePropertiesFile(rawText) {
+    const text = rawText.replace(/^\uFEFF/, '').trim();
+    if (!text) throw new Error('The file is empty.');
+
+    if (text.startsWith('{')) {
+        return Object.entries(JSON.parse(text));
+    }
+
+    const pairs = [];
+    for (const line of text.split(/\r?\n/)) {
+        const l = line.trim();
+        if (!l || l.startsWith('#')) continue;
+        const m = l.match(/^([^:=,\t]+?)\s*[:=,\t]\s*(.*)$/);
+        if (!m) continue;
+        pairs.push([stripQuotes(m[1].trim()), stripQuotes(m[2].trim())]);
+    }
+    if (pairs.length === 0) throw new Error('No "key: value" pairs found in the file.');
+    return pairs;
+}
+
+function toBool(v) {
+    if (typeof v === 'boolean') return v;
+    const s = String(v).trim().toLowerCase();
+    if (['true', 'yes', 'y', '1', 'on'].includes(s)) return true;
+    if (['false', 'no', 'n', '0', 'off', ''].includes(s)) return false;
+    return null; // not understood
+}
+
+function toKeywordString(v) {
+    const list = Array.isArray(v) ? v : String(v).split(',');
+    const seen = new Set();
+    const out = [];
+    for (const item of list) {
+        const k = String(item).trim();
+        if (k && !seen.has(k.toLowerCase())) {
+            seen.add(k.toLowerCase());
+            out.push(k);
+        }
+    }
+    return out.join(',');
+}
+
+const SAMPLE_TEMPLATE = {
+    name: 'Handwoven Cotton Rug',
+    description: 'Soft handmade cotton rug',
+    price: 4500.5,
+    costPrice: 3000,
+    deliveryPrice: 250,
+    category: 'Home Decor',
+    group: 'Rugs',
+    slug: 'handwoven-cotton-rug',
+    keywords: ['handmade', 'cotton', 'rug'],
+    sellerLocation: 'Lahore, Punjab',
+    deliveryDuration: '3-5 business days',
+    isReturnable: true,
+    featured: false,
+};
 
 // A YouTube-tags-style input: type a keyword, hit Enter or "," to turn it
 // into a chip. The full set of chips is what actually gets stored — the
@@ -108,6 +212,7 @@ function KeywordsInput({ value, onChange, placeholder, error }) {
 function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
     const isEditMode = Boolean(initialData);
     const fileInputRef = useRef(null);
+    const propsFileRef = useRef(null);
 
     const {
         register,
@@ -120,21 +225,7 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
         control,
         formState: { errors, isSubmitting },
     } = useForm({
-        defaultValues: {
-            name: initialData?.name || '',
-            description: initialData?.description || '',
-            price: initialData?.price ?? '',
-            costPrice: initialData?.costPrice ?? '',
-            category: initialData?.category || '',
-            group: initialData?.group || '',
-            slug: initialData?.slug || '',
-            fileId: initialData?.fileId || '',
-            isReturnable: initialData?.isReturnable ?? false,
-            keywords: initialData?.keywords || '',
-            sellerLocation: initialData?.sellerLocation || '',
-            deliveryDuration: initialData?.deliveryDuration || '',
-            featured: initialData?.featured ?? false,
-        },
+        defaultValues: getDefaults(initialData),
     });
 
     const [submitError, setSubmitError] = useState('');
@@ -147,6 +238,10 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
     // it directly, typing in Name stops overwriting it.
     const [slugTouchedManually, setSlugTouchedManually] = useState(false);
 
+    // "Fill from file" state
+    const [fillReport, setFillReport] = useState(null); // { filled, skipped, issues }
+    const [propsFileName, setPropsFileName] = useState(''); // name of the file currently loaded
+
     // Mount transition for the card itself — one deliberate entrance, not
     // scattered per-field animation.
     const [visible, setVisible] = useState(false);
@@ -156,24 +251,12 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
     }, []);
 
     useEffect(() => {
-        reset({
-            name: initialData?.name || '',
-            description: initialData?.description || '',
-            price: initialData?.price ?? '',
-            costPrice: initialData?.costPrice ?? '',
-            category: initialData?.category || '',
-            group: initialData?.group || '',
-            slug: initialData?.slug || '',
-            fileId: initialData?.fileId || '',
-            isReturnable: initialData?.isReturnable ?? false,
-            keywords: initialData?.keywords || '',
-            sellerLocation: initialData?.sellerLocation || '',
-            deliveryDuration: initialData?.deliveryDuration || '',
-            featured: initialData?.featured ?? false,
-        });
+        reset(getDefaults(initialData));
         setImageFile(null);
         setSlugTouchedManually(false);
         setSlugAvailable(null);
+        setFillReport(null);
+        setPropsFileName('');
     }, [initialData, reset]);
 
     // Local preview: a freshly picked file wins, otherwise fall back to the
@@ -275,6 +358,143 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
         if (fileInputRef.current) fileInputRef.current.value = '';
     }
 
+    // ---------- Fill from file ----------
+
+    // Puts the form back to its starting state:
+    //  - create mode -> every field empty
+    //  - edit mode   -> the product's saved values
+    // The product image the user picked is left alone.
+    function resetFormValues() {
+        reset(getDefaults(initialData));
+        clearErrors();
+        setSlugTouchedManually(false);
+        setSlugAvailable(null);
+    }
+
+    async function handlePropertiesFile(e) {
+        const file = e.target.files?.[0];
+        e.target.value = ''; // lets the same file be picked again later
+
+        // No file chosen (picker cancelled) -> nothing to do, keep the form as is.
+        if (!file) return;
+
+        try {
+            const pairs = parsePropertiesFile(await file.text());
+            const raw = {};
+            const skipped = [];
+            const issues = [];
+            const filled = [];
+
+            for (const [key, val] of pairs) {
+                const field = FIELD_ALIASES[normalizeKey(key)];
+                if (field) raw[field] = val;
+                else if (!['key', 'property'].includes(normalizeKey(key))) skipped.push(key);
+            }
+
+            // The file is readable, so start from a clean form. This way values from a
+            // previous file never linger, and anything missing from this file stays empty
+            // (create mode) or keeps its saved value (edit mode).
+            resetFormValues();
+
+            const opts = { shouldDirty: true, shouldValidate: true };
+            const text = (v) => String(v ?? '').trim();
+
+            // Plain text fields
+            ['name', 'description', 'category', 'group', 'sellerLocation', 'deliveryDuration'].forEach((f) => {
+                if (f in raw) {
+                    setValue(f, text(raw[f]), opts);
+                    filled.push(f);
+                }
+            });
+
+            // Numbers
+            if ('price' in raw) {
+                const n = Number(raw.price);
+                if (text(raw.price) !== '' && Number.isFinite(n)) {
+                    setValue('price', n, opts);
+                    filled.push('price');
+                } else issues.push(`price: "${raw.price}" is not a number`);
+            }
+            if ('costPrice' in raw) {
+                const n = Number(raw.costPrice);
+                if (text(raw.costPrice) !== '' && Number.isFinite(n)) {
+                    setValue('costPrice', Math.round(n), opts);
+                    filled.push('costPrice');
+                    if (!Number.isInteger(n)) issues.push(`costPrice: ${n} was rounded to ${Math.round(n)}`);
+                } else issues.push(`costPrice: "${raw.costPrice}" is not a number`);
+            }
+            if ('deliveryPrice' in raw) {
+                const n = Number(raw.deliveryPrice);
+                if (text(raw.deliveryPrice) !== '' && Number.isFinite(n)) {
+                    setValue('deliveryPrice', Math.round(n), opts);
+                    filled.push('deliveryPrice');
+                    if (!Number.isInteger(n)) issues.push(`deliveryPrice: ${n} was rounded to ${Math.round(n)}`);
+                } else issues.push(`deliveryPrice: "${raw.deliveryPrice}" is not a number`);
+            }
+            // Booleans
+            ['isReturnable', 'featured'].forEach((f) => {
+                if (f in raw) {
+                    const b = toBool(raw[f]);
+                    if (b === null) issues.push(`${f}: "${raw[f]}" is not true/false`);
+                    else {
+                        setValue(f, b, opts);
+                        filled.push(f);
+                    }
+                }
+            });
+
+            // Keywords
+            if ('keywords' in raw) {
+                setValue('keywords', toKeywordString(raw.keywords), opts);
+                filled.push('keywords');
+            }
+
+            // Slug: explicit value wins; otherwise derive from name (create mode only)
+            let finalSlug = null;
+            if ('slug' in raw && text(raw.slug)) {
+                finalSlug = slugify(text(raw.slug));
+                setSlugTouchedManually(true);
+            } else if ('name' in raw && !isEditMode) {
+                finalSlug = slugify(text(raw.name));
+            }
+            if (finalSlug) {
+                setValue('slug', finalSlug, opts);
+                filled.push('slug');
+                await validateSlugUniqueness(finalSlug);
+            }
+
+            setPropsFileName(file.name);
+            setFillReport({ filled, skipped, issues });
+        } catch (err) {
+            console.error(err);
+            // Unreadable file: leave the form untouched and show why.
+            setPropsFileName('');
+            setFillReport({
+                filled: [],
+                skipped: [],
+                issues: [err instanceof SyntaxError ? 'Invalid JSON in file.' : err.message || 'Could not read file.'],
+            });
+        }
+    }
+
+    // "No file added" state: drop the loaded file and empty the form again.
+    function handleRemovePropertiesFile() {
+        if (propsFileRef.current) propsFileRef.current.value = '';
+        setPropsFileName('');
+        setFillReport(null);
+        resetFormValues();
+    }
+
+    function downloadTemplate() {
+        const blob = new Blob([JSON.stringify(SAMPLE_TEMPLATE, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'product-template.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     const onSubmit = async (formValues) => {
         setSubmitError('');
 
@@ -289,8 +509,9 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
         const data = {
             name: formValues.name,
             description: formValues.description,
-            price: Number(formValues.price),
+            price: parseInt(Number(formValues.price)),
             costPrice: parseInt(formValues.costPrice, 10),
+            deliveryPrice: parseInt(formValues.deliveryPrice, 10),
             category: formValues.category,
             group: formValues.group,
             slug: formValues.slug,
@@ -298,7 +519,8 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
             isReturnable: Boolean(formValues.isReturnable),
             keywords: formValues.keywords || '',
             sellerLocation: formValues.sellerLocation || '',
-            deliveryDuration: formValues.deliveryDuration || '',
+            deliveryDuration: parseInt(formValues.deliveryDuration) || 7,
+            featured: Boolean(formValues.featured),
         };
 
         try {
@@ -383,6 +605,83 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
                     {submitError}
                 </p>
             )}
+
+            {/* ---- Fill from file ---- */}
+            <div className="rounded-md border border-dashed border-stone-300 bg-stone-50 px-4 py-3 dark:border-stone-700 dark:bg-stone-800/40">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                        <FileUp size={16} className="mt-0.5 shrink-0 text-stone-400 dark:text-stone-500" />
+                        <div>
+                            <p className="text-sm font-medium text-stone-900 dark:text-stone-100">Fill from file</p>
+                            <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">
+                                Upload a .json or .txt/.csv file of property/value pairs to auto-fill this form.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={downloadTemplate}
+                            className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-stone-600 transition-colors hover:bg-stone-200 dark:text-stone-300 dark:hover:bg-stone-700"
+                        >
+                            <Download size={13} /> Template
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => propsFileRef.current?.click()}
+                            className="flex items-center gap-1.5 rounded-md bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
+                        >
+                            <FileUp size={13} /> {propsFileName ? 'Change file' : 'Choose file'}
+                        </button>
+                        <input
+                            ref={propsFileRef}
+                            type="file"
+                            accept=".json,.txt,.csv,application/json,text/plain,text/csv"
+                            onChange={handlePropertiesFile}
+                            className="hidden"
+                        />
+                    </div>
+                </div>
+
+                {propsFileName && (
+                    <div className="mt-3 flex items-center justify-between gap-2 rounded-md bg-white px-3 py-2 text-xs dark:bg-stone-900">
+                        <span className="flex min-w-0 items-center gap-1.5 text-stone-700 dark:text-stone-300">
+                            <FileText size={12} className="shrink-0 text-stone-400 dark:text-stone-500" />
+                            <span className="truncate">{propsFileName}</span>
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleRemovePropertiesFile}
+                            title="Remove file and clear the form"
+                            aria-label="Remove file and clear the form"
+                            className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 font-medium text-stone-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-stone-400 dark:hover:bg-red-500/15 dark:hover:text-red-400"
+                        >
+                            <X size={12} /> Remove
+                        </button>
+                    </div>
+                )}
+
+                {fillReport && (
+                    <div className="mt-3 space-y-1 text-xs">
+                        {fillReport.filled.length > 0 && (
+                            <p className="flex items-start gap-1.5 text-emerald-700 dark:text-emerald-400">
+                                <CheckCircle2 size={12} className="mt-0.5 shrink-0" />
+                                Filled: {fillReport.filled.join(', ')}
+                            </p>
+                        )}
+                        {fillReport.skipped.length > 0 && (
+                            <p className="text-stone-500 dark:text-stone-400">
+                                Ignored unknown properties: {fillReport.skipped.join(', ')}
+                            </p>
+                        )}
+                        {fillReport.issues.map((msg, i) => (
+                            <p key={i} className="flex items-start gap-1.5 text-red-600 dark:text-red-400">
+                                <AlertCircle size={12} className="mt-0.5 shrink-0" /> {msg}
+                            </p>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* ---- Identity: name, slug, description ---- */}
             <div className="space-y-4">
@@ -512,6 +811,29 @@ function ProductForm({ initialData, categories, groups, onDone, onCancel }) {
                     {errors.costPrice && (
                         <p className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
                             <AlertCircle size={11} /> {errors.costPrice.message}
+                        </p>
+                    )}
+                </div>
+
+                <div>
+                    <label className={labelClass}>
+                        <Truck size={13} className="text-stone-400 dark:text-stone-500" /> Delivery Price
+                    </label>
+                    <input
+                        type="number"
+                        step="1"
+                        inputMode="numeric"
+                        className={`${inputClass} ${noSpinnerClass} h-14 text-base ${errors.deliveryPrice ? inputErrorClass : ''}`}
+                        placeholder="0"
+                        {...register('deliveryPrice', {
+                            required: 'Delivery price is required',
+                            min: { value: 0, message: 'Delivery price must be positive' },
+                            validate: (v) => Number.isInteger(Number(v)) || 'Delivery price must be a whole number',
+                        })}
+                    />
+                    {errors.deliveryPrice && (
+                        <p className="mt-1 flex items-center gap-1 text-xs text-red-600 dark:text-red-400">
+                            <AlertCircle size={11} /> {errors.deliveryPrice.message}
                         </p>
                     )}
                 </div>

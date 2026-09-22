@@ -51,4 +51,14 @@
 	a {
 		transition: color 200ms ease;
 	}
+
+	.panel-mobile-height {
+		height: 100vh;
+	}
+
+	@supports (height: 100dvh) {
+		.panel-mobile-height {
+			height: 100dvh;
+		}
+	}
 }

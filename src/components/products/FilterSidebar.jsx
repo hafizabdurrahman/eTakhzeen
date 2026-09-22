@@ -16,7 +16,7 @@ function FilterSidebar({ isOpen, onClose, onClear }) {
                 }`}
             />
             <aside
-                className={`fixed left-0 top-0 z-50 h-full w-full max-w-xs overflow-y-auto border-r border-stone-200 bg-stone-400 shadow-2xl transition-transform duration-300 dark:border-stone-800 dark:bg-stone-900 ${
+                className={`fixed left-0 top-0 z-50 h-full w-full max-w-xs overflow-y-auto border-r border-stone-200 bg-stone-400 shadow-2xl transition-transform duration-300 dark:border-stone-800 dark:bg-stone-900 z-200 ${
                     isOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}
             >

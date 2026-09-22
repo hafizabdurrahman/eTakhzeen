@@ -4,6 +4,7 @@ import { Plus, Boxes, Sparkles } from 'lucide-react';
 import service from '../../backend/service';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
+import ProductAnalytics from '../components/ProductAnalytics';
 import CategoriesView from '../components/CategoriesView';
 import GroupsView from '../components/GroupsView';
 import BulkUploadForm from '../components/BulkUploadForm';
@@ -12,14 +13,18 @@ import { Select } from '../../ui';
 
 // Staggered entrance — same pattern used across the other admin pages
 // (Dashboard, Orders, Users, Announcements, Finance).
-function Reveal({ children, delay = 0 }) {
+function Reveal({ children, delay = 0, className = '' }) {
     const [shown, setShown] = useState(false);
     useEffect(() => {
         const t = setTimeout(() => setShown(true), delay);
         return () => clearTimeout(t);
     }, [delay]);
     return (
-        <div className={`transition-all duration-700 ease-out ${shown ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+        <div
+            className={`transition-all duration-700 ease-out ${
+                shown ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+            } ${className}`}
+        >
             {children}
         </div>
     );
@@ -28,7 +33,7 @@ function Reveal({ children, delay = 0 }) {
 function AdminProducts() {
     const location = useLocation();
 
-    // 'products' | 'categories' | 'groups' | 'bulk'
+    // 'products' | 'analytics' | 'categories' | 'groups' | 'bulk'
     // Arriving from a Dashboard stat card (Categories / Groups) opens
     // straight onto that tab instead of always defaulting to Products.
     const [view, setView] = useState(location.state?.view || 'products');
@@ -114,6 +119,7 @@ function AdminProducts() {
 
     const tabs = [
         { key: 'products', label: 'Products' },
+        { key: 'analytics', label: 'Analytics' },
         { key: 'categories', label: 'Categories' },
         { key: 'groups', label: 'Groups' },
         { key: 'bulk', label: 'Create Group (Bulk Upload)' },
@@ -207,7 +213,7 @@ function AdminProducts() {
                         />
                     )}
 
-                    <Reveal delay={100}>
+                    <Reveal delay={100} className='relative z-10'>
                         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
                             <Select
                                 value={filterCategory}
@@ -240,6 +246,18 @@ function AdminProducts() {
                                 onView={setViewingProduct}
                                 onRefresh={loadAll}
                             />
+                        </Reveal>
+                    )}
+                </>
+            )}
+
+            {view === 'analytics' && (
+                <>
+                    {loading && <p className="text-sm text-stone-500 dark:text-stone-400">Loading analytics...</p>}
+                    {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+                    {!loading && !error && (
+                        <Reveal delay={80}>
+                            <ProductAnalytics products={products} />
                         </Reveal>
                     )}
                 </>

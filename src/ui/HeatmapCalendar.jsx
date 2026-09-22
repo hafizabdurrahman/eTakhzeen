@@ -5,9 +5,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const GAP = 4;
-const MIN_CELL = 11;    // slightly larger floor than before
-const MAX_CELL = 16;    // slightly larger ceiling — still small/dense, not the old 20px blowout
-const TARGET_CELL = 13; // used only to pick a sensible starting week-count
+const MIN_CELL = 11;
+const MAX_CELL = 16;
+const TARGET_CELL = 13;
 const TOP_MARGIN = 16;
 const DEFAULT_MIN_WEEKS = 8;
 const DEFAULT_MAX_WEEKS = 26;
@@ -35,41 +35,37 @@ const LEVEL_CLASSES = [
 ];
 
 /**
- * Contribution-style calendar, centered and fully responsive. Given the
- * container width, it first picks a column count (`activeWeeks`) that
- * roughly fits at a small target cell size, clamped to [minWeeks,
- * maxWeeks]. It then solves for the exact cell size that makes that many
- * columns fill the container edge-to-edge, clamped to [MIN_CELL,
- * MAX_CELL] so cells stay small and dense rather than ballooning. The
- * grid is centered in its container so any small leftover slack (from
- * the clamps) is distributed evenly instead of collecting on one side.
+ * Contribution-style calendar, centered and fully responsive.
  *
- * `entries` — [{ date: Date|'YYYY-MM-DD', count, item?, items? }]. `item`/
- * `items` are optional raw records (e.g. order objects) tied to that date
- * — when present, clicking a box passes every item across the days it
- * covers to `onBoxClick`.
- * `days` — how many days of history to cover (drives bucket size when
- * the available columns can't show one box per day). Falls back to
- * `weeks * 7` if omitted.
+ * `entries` — [{ date: Date|'YYYY-MM-DD', count, item?, items? }]. Defaults
+ * to [] so the component never throws if a caller hasn't loaded data yet
+ * or passes the wrong prop shape — it just renders an empty grid.
+ * `title` — optional heading rendered above the calendar, so the same
+ * component looks consistent (with its own label) wherever it's embedded,
+ * without every caller having to wrap it in its own <h3>.
+ * `days` — how many days of history to cover.
  * `weeks` — fallback column count used before the container is measured.
  * `minWeeks` / `maxWeeks` — bounds for the responsive column count.
  * `onBoxClick` — optional (bucket) => void,
  *   bucket = { start: Date, end: Date, count: number, items: any[] }.
  */
 function HeatmapCalendar({
-    entries,
+    entries = [],
     days,
     weeks = 12,
     minWeeks = DEFAULT_MIN_WEEKS,
     maxWeeks = DEFAULT_MAX_WEEKS,
     onBoxClick,
-    unitLabel = 'order', // ⚠️ new — e.g. "product" for a product-activity heatmap; existing callers unaffected
+    unitLabel = 'order',
+    title,
 }) {
     const containerRef = useRef(null);
     const [hovered, setHovered] = useState(null);
     const [tooltipPos, setTooltipPos] = useState(null);
     const [visible, setVisible] = useState(false);
     const [containerWidth, setContainerWidth] = useState(null);
+
+    const safeEntries = Array.isArray(entries) ? entries : [];
 
     useEffect(() => {
         const t = requestAnimationFrame(() => setVisible(true));
@@ -86,16 +82,12 @@ function HeatmapCalendar({
         return () => observer.disconnect();
     }, []);
 
-    // Step 1 — pick a column count that roughly fits at the target cell
-    // size, clamped to the requested bounds.
     const activeWeeks = useMemo(() => {
         if (!containerWidth) return weeks;
         const fit = Math.floor((containerWidth + GAP) / (TARGET_CELL + GAP));
         return Math.max(minWeeks, Math.min(maxWeeks, fit));
     }, [containerWidth, weeks, minWeeks, maxWeeks]);
 
-    // Step 2 — solve for the exact cell size that makes `activeWeeks`
-    // columns fill the container width, clamped to [MIN_CELL, MAX_CELL].
     const cell = useMemo(() => {
         if (!containerWidth) return TARGET_CELL;
         const raw = Math.floor((containerWidth - (activeWeeks - 1) * GAP) / activeWeeks);
@@ -109,7 +101,8 @@ function HeatmapCalendar({
 
     const { buckets, monthMarkers, max } = useMemo(() => {
         const perDay = new Map();
-        entries.forEach((e) => {
+        safeEntries.forEach((e) => {
+            if (!e || !e.date) return;
             const key = typeof e.date === 'string' ? e.date.slice(0, 10) : toDateKey(e.date);
             const existing = perDay.get(key) || { count: 0, items: [] };
             existing.count += e.count ?? 1;
@@ -172,7 +165,7 @@ function HeatmapCalendar({
         });
 
         return { buckets: list, monthMarkers: markers, max: maxCount };
-    }, [entries, totalSlots, bucketSize, coveredDays]);
+    }, [safeEntries, totalSlots, bucketSize, coveredDays]);
 
     function handleMove(e, bucket) {
         if (!containerRef.current) return;
@@ -196,9 +189,13 @@ function HeatmapCalendar({
     const viewW = gridWidth;
     const viewH = gridHeight + TOP_MARGIN;
     const isClickable = Boolean(onBoxClick);
+    const isEmpty = max === 0;
 
     return (
         <div>
+            {title && (
+                <h3 className="mb-2 text-sm font-semibold text-stone-700 dark:text-stone-200">{title}</h3>
+            )}
             <p className="mb-3 text-xs text-stone-500 dark:text-stone-400">
                 {bucketSize === 1
                     ? `Each square is one day over the last ${coveredDays} days — darker means more ${unitLabel}s were added that day.`
@@ -227,8 +224,6 @@ function HeatmapCalendar({
                         {buckets.map((b) => {
                             if (b.isFuture) return null;
                             const level = levelFor(b.count, max);
-                            // Staggered draw-in, left to right by column, capped so a
-                            // wide grid doesn't leave the last columns waiting ages.
                             const delayMs = Math.min(b.column * 10, 260);
                             return (
                                 <rect
@@ -267,7 +262,7 @@ function HeatmapCalendar({
                                                   ? hovered.start.toLocaleDateString()
                                                   : `${hovered.start.toLocaleDateString()} – ${hovered.end.toLocaleDateString()}`}
                                           </div>
-                                            <div className="opacity-80">
+                                          <div className="opacity-80">
                                               {hovered.count} {unitLabel}{hovered.count === 1 ? '' : 's'}
                                           </div>
                                           {onBoxClick && hovered.count > 0 && (
@@ -280,6 +275,11 @@ function HeatmapCalendar({
                     }
                 />
             </div>
+            {isEmpty && (
+                <p className="mt-2 text-center text-xs text-stone-400 dark:text-stone-500">
+                    No {unitLabel} activity in this period yet.
+                </p>
+            )}
             <div className="mt-3 flex flex-wrap items-center justify-end gap-1 text-xs text-stone-500 dark:text-stone-400">
                 Fewer
                 {LEVEL_CLASSES.map((cls, i) => (

@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { fetchCatalogCategories } from '../../store/slices/productSlice'; // ⚠️ adjust path
 import CategoryTile from './CategoryTile';
 
-const DISPLAY_LIMIT = 5;
+const DISPLAY_LIMIT = 6;
 
 // Landing-page preview strip — pure navigation, same circle treatment as
 // CategoriesSection but with no selection state (every CategoryTile here
@@ -20,11 +20,11 @@ function CategoryPreview(props) {
 
     return (
         <section>
-            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">{props?.title}</h2>
+            <h2 className="mb-4 text-xl font-semibold text-stone-900 dark:text-stone-100">{props?.title || "Categories"}</h2>
 
             {categories.status === 'loading' && (
                 <div className="flex gap-5 sm:gap-6">
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {Array.from({ length: 6 }).map((_, i) => (
                         <div key={i} className="flex flex-col items-center gap-2">
                             <div className="h-16 w-16 animate-pulse rounded-full bg-stone-100 dark:bg-stone-800 sm:h-20 sm:w-20" />
                             <div className="h-3 w-10 animate-pulse rounded bg-stone-100 dark:bg-stone-800" />
@@ -42,7 +42,7 @@ function CategoryPreview(props) {
             )}
 
             {categories.status === 'succeeded' && categories.items.length > 0 && (
-                <div className="flex flex-wrap gap-5 sm:gap-6">
+                <div className="flex justify-center flex-wrap gap-5 sm:gap-6">
                     {categories.items.slice(0, DISPLAY_LIMIT).map((c) => (
                         <CategoryTile key={c.name} name={c.name} sampleFileID={c.sampleFileID} />
                     ))}
