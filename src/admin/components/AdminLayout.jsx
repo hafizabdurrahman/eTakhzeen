@@ -92,11 +92,7 @@ function AdminLayout() {
     }
 
     return (
-<<<<<<< HEAD
-        <div className="panel-mobile-height flex overflow-hidden md:h-auto md:min-h-screen md:overflow-visible">
-=======
         <div className="flex min-h-screen">
->>>>>>> parent of 96b08c5 (Fix)
             {/* Mobile top bar — only shown below md, since the sidebar becomes
                 an off-canvas drawer at that breakpoint instead of a column. */}
             <div className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-stone-200 bg-white px-4 py-3 dark:border-stone-800 dark:bg-stone-900 md:hidden">
@@ -230,12 +226,7 @@ function AdminLayout() {
                     </button>
                 </div>
             </aside>
-
-<<<<<<< HEAD
-            <main className="min-h-0 min-w-0 flex-1 touch-pan-y overflow-y-auto bg-white p-4 pt-20 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:p-6 sm:pt-6 md:h-auto md:overflow-visible md:p-8">
-=======
             <main className="min-w-0 flex-1 bg-white p-4 pt-20 text-stone-900 dark:bg-stone-950 dark:text-stone-100 sm:p-6 sm:pt-6 md:p-8">
->>>>>>> parent of 96b08c5 (Fix)
                 <Outlet />
             </main>
         </div>
