@@ -46,7 +46,7 @@ export function parsePropertiesFile(rawText) {
         if (!m) continue;
         pairs.push([stripQuotes(m[1].trim()), stripQuotes(m[2].trim())]);
     }
-    if (pairs.length === 0) throw new Error('No "key: value" pairs found in the file.');
+    if (pairs.length === 0) throw new Error('No "key: value" pairs found in the file.'); 
     return pairs;
 }
 
