@@ -49,7 +49,7 @@ export function parsePropertiesFile(rawText) {
     if (pairs.length === 0) throw new Error('No "key: value" pairs found in the file.'); 
     return pairs;
 }
-
+   
 export function toBool(v) {
     if (typeof v === 'boolean') return v;
     const s = String(v).trim().toLowerCase();
