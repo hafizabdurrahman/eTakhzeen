@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet, useNavigate, Link } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronLeft, ChevronRight, Menu, X, LogOut, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu, X, LogOut, ShieldCheck, Home } from 'lucide-react';
 import { adminNavItems } from '../adminNavConfig';
 import auth from '../../backend/auth'; // ⚠️ adjust path to match your project
 import { user } from '../../backend'; // ⚠️ adjust path to match your project
@@ -211,6 +211,17 @@ function AdminLayout() {
                             {logoutError}
                         </p>
                     )}
+                    <Link
+                        to="/"
+                        title="Go to home"
+                        aria-label="Go to home"
+                        className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:text-stone-400 dark:hover:bg-stone-500/10 dark:focus-visible:ring-offset-stone-950 ${
+                            collapsed ? 'justify-center' : ''
+                        }`}
+                    >
+                        <Home size={18} className="shrink-0" aria-hidden="true" />
+                        {!collapsed &&  'Back to Home'}
+                    </Link>
                     <button
                         type="button"
                         onClick={handleLogout}
