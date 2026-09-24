@@ -124,7 +124,7 @@ const SAMPLE_TEMPLATE = {
     slug: 'handwoven-cotton-rug',
     keywords: ['handmade', 'cotton', 'rug'],
     sellerLocation: 'Lahore, Punjab',
-    deliveryDuration: '3-5 business days',
+    deliveryDuration: 3,
     isReturnable: true,
     featured: false,
 };

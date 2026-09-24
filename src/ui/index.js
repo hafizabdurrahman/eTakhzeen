@@ -103,3 +103,7 @@ export { ORDER_STATUS_HEX } from './StatusPicker';
  * Users may type a new value that is not already in options.
  */
 export { default as Combobox } from './Combobox';
+
+export { default as CatalogSearchBar } from './CatalogSearchBar';
+
+export { default as ImageMultiSelect } from './ImageMultiSelect';
