@@ -24,6 +24,7 @@ import {
   AdminOrderDetail,
   AdminFinance,
   AdminSettings,
+  AdminSocialMedia,
   UnderConstruction
 } from "./admin";
 
@@ -123,6 +124,7 @@ const router = createBrowserRouter(
         <Route path='announcements' element={<AdminAnnouncements />} />
         <Route path='announcements/new' element={<AdminAnnouncementDetail />} />
         <Route path='announcements/:announcementId' element={<AdminAnnouncementDetail />} />
+        <Route path='socialMedia' element={<AdminSocialMedia />} />
         {/* <Route path='contact' element={<AdminContact />}>
           <Route index element={<AdminContactEmptyState />} />
           <Route path='new' element={<AdminContactNewConversation />} />

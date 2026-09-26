@@ -10,7 +10,8 @@ import {
     messagesReducer,
     faqReducer,
     reviewsReducer,
-    returnReducer
+    returnReducer,
+    socialMediaReducer
 } from "./slices";
 
 const store = configureStore({
@@ -26,6 +27,7 @@ const store = configureStore({
         faq: faqReducer,
         reviews: reviewsReducer,
         returns: returnReducer,
+        socialMedia: socialMediaReducer,
     }
 });
 

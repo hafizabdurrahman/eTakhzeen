@@ -23,7 +23,8 @@ const ICON_COLOR_CLASSES = {
     amber: 'text-amber-500 dark:text-amber-400',
     stone: 'text-stone-500 dark:text-stone-400',
     green: 'text-green-500 dark:text-green-400',
-    warm: 'text-orange-600 dark:text-orange-700'
+    warm: 'text-orange-600 dark:text-orange-700',
+    yellow: 'text-yellow-600 dark:text-yellow-400'
 };
 
 // Paths that should warm the redux cache as soon as the user shows intent

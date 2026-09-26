@@ -17,5 +17,6 @@ import AdminSettings from "./components/AdminSettings";
 import UnderConstruction from "./components/UnderConstruction";
 import UploadProgress from "./components/UploadProgress";
 import ProductAnalytics from "./components/ProductAnalytics";
+import AdminSocialMedia from "./components/AdminSocialMedia";
 
-export { AdminContactEmptyState, AdminContactNewConversation, AdminContactThread, AdminAnnouncements, AdminContact, AdminDashboard, AdminLayout, AdminProducts, AdminUsers, AdminUserProfile, AdminOrders, AdminOrderDetail, RichTextEditor, AdminAnnouncementDetail, AdminFinance, AdminSettings, UnderConstruction, UploadProgress, ProductAnalytics };
+export { AdminContactEmptyState, AdminContactNewConversation, AdminContactThread, AdminAnnouncements, AdminContact, AdminDashboard, AdminLayout, AdminProducts, AdminUsers, AdminUserProfile, AdminOrders, AdminOrderDetail, RichTextEditor, AdminAnnouncementDetail, AdminFinance, AdminSettings, UnderConstruction, UploadProgress, ProductAnalytics, AdminSocialMedia };

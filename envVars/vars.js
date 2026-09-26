@@ -32,7 +32,9 @@ const vars = {
  
     eTakhzeenReviewsTableId: String(import.meta.env.VITE_ETAKHZEEN_REVIEWS_TABLE_ID),
 
-    eTakhzeenReturnTableId: String(import.meta.env.VITE_ETAKHZEEN_RETURN_TABLE_ID)
+    eTakhzeenReturnTableId: String(import.meta.env.VITE_ETAKHZEEN_RETURN_TABLE_ID),
+
+    eTakhzeenSocialMediaTableId: String(import.meta.env.VITE_ETAKHZEEN_SOCIAL_MEDIA_POST_TABLE_ID),
 }
 
 export default vars;

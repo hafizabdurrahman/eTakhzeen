@@ -30,27 +30,46 @@ import RichTextEditor from './RichTextEditor';
 // Which alert surface this announcement shows up on, if any. "none" is the
 // default — most announcements just live in the regular list and don't
 // interrupt anyone.
+//
+// `classes` replaces the old inline hex `color` — each entry is a full set of
+// Tailwind utility classes (light + dark) for: the icon tile when inactive,
+// the icon tile when active, and the active card's border/background.
 const ALERT_TYPES = [
     {
         value: 'none',
         label: 'None',
         description: "Won't appear in any alert banner — just the regular announcements list.",
         icon: BellOff,
-        color: '#78716c',
+        classes: {
+            iconIdle: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+            iconActive: 'bg-stone-600 text-white dark:bg-stone-500',
+            cardActive: 'border-stone-600 bg-stone-50 dark:border-stone-500 dark:bg-stone-500/10',
+            badgeActive: 'bg-stone-600 dark:bg-stone-500',
+        },
     },
     {
         value: 'list',
         label: 'List alert',
         description: 'Shown in the alerts list users can browse.',
         icon: Bell,
-        color: '#0ea5e9',
+        classes: {
+            iconIdle: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+            iconActive: 'bg-blue-600 text-white dark:bg-blue-500',
+            cardActive: 'border-blue-600 bg-blue-50 dark:border-blue-500 dark:bg-blue-500/10',
+            badgeActive: 'bg-blue-600 dark:bg-blue-500',
+        },
     },
     {
         value: 'special',
         label: 'Special alert',
         description: 'Highlighted as a special, high-priority alert.',
         icon: Sparkles,
-        color: '#f97316',
+        classes: {
+            iconIdle: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+            iconActive: 'bg-purple-600 text-white dark:bg-purple-500',
+            cardActive: 'border-purple-600 bg-purple-50 dark:border-purple-500 dark:bg-purple-500/10',
+            badgeActive: 'bg-purple-600 dark:bg-purple-500',
+        },
     },
 ];
 
@@ -115,7 +134,8 @@ function StatTile({ icon: Icon, label, value, color }) {
 }
 
 // Card-style option picker — each option needs its own icon + explanation,
-// not just a label, so a plain SegmentedControl wouldn't fit here.
+// not just a label, so a plain SegmentedControl wouldn't fit here. Colors now
+// come from each option's `classes` set instead of an inline hex `color`.
 function AlertTypePicker({ value, onChange }) {
     return (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -130,15 +150,13 @@ function AlertTypePicker({ value, onChange }) {
                         aria-pressed={active}
                         className={`relative flex items-start gap-3 rounded-lg border p-4 text-left transition-all duration-200 ${
                             active
-                                ? 'scale-[1.01] border-brand-600 bg-brand-50 shadow-sm dark:border-brand-500 dark:bg-brand-500/10'
+                                ? `scale-[1.01] shadow-sm ${opt.classes.cardActive}`
                                 : 'border-stone-200 hover:-translate-y-0.5 hover:border-stone-300 dark:border-stone-800 dark:hover:border-stone-700'
                         }`}
                     >
                         <span
                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ${
-                                active
-                                    ? 'scale-110 bg-brand-600 text-white dark:bg-brand-500'
-                                    : 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400'
+                                active ? `scale-110 ${opt.classes.iconActive}` : opt.classes.iconIdle
                             }`}
                         >
                             <Icon size={16} />
@@ -148,7 +166,9 @@ function AlertTypePicker({ value, onChange }) {
                             <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400">{opt.description}</p>
                         </div>
                         {active && (
-                            <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-white dark:bg-brand-500">
+                            <span
+                                className={`absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full text-white ${opt.classes.badgeActive}`}
+                            >
                                 <Check size={12} strokeWidth={3} />
                             </span>
                         )}

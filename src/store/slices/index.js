@@ -9,3 +9,4 @@ export { default as messagesReducer } from './messagesSlice';
 export { default as faqReducer } from './faqSlice';
 export { default as reviewsReducer } from './reviewSlice';
 export { default as returnReducer } from './returnSlice';
+export { default as socialMediaReducer } from './socialMediaSlice';
