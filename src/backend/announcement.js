@@ -1,6 +1,6 @@
 import envVars from '../../envVars/vars'; // ⚠️ adjust path
 import { Client, TablesDB, Storage, ID, Query } from 'appwrite';
-
+// 
 /*
  * ANNOUNCEMENT SYSTEM
  *
